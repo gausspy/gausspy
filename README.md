@@ -103,5 +103,8 @@ GaussPy then use
 ```bash
 python setup.py install --user
 ```
-
 change the 'requires' statement in setup.py to include `scipy` and `lmfit`.
+
+### Contributing to GaussPy
+
+To contribute to GaussPy, see [Contributing to GaussPy](CONTRIBUTING.md)
