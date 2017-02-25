@@ -5,7 +5,6 @@ through the process.
 
  - [Question or Problem?](#question)
  - [Issues and Bugs](#issue)
- - [Feature Requests](#feature)
  - [Submission Guidelines](#submit)
  
 ## <a name="question"></a> Got a Question or Problem?
@@ -120,11 +119,11 @@ $ git rebase upstream/dev
 #### Test your code
 
 We are working hard to improve GaussPy's testing. If you add new functions
-in Python code then please write unit tests in the deploy/test directory.
+in Python code then please write unit tests in the tests/ directory.
 When finished, verify that the self-test works.
 
-```sh
-$ ./ml self-test
+```python
+python setup.py test
 ```
 
 Make sure that all tests pass. Please, do not submit patches that fail.
