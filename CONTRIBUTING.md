@@ -91,7 +91,7 @@ changed and why. Follow these guidelines when writing one:
 A good commit log looks like this:
 
 ```
-Fixing Issue #123: make the whatchamajigger work in MarkLogic 8
+Fixing Issue #123: make the whatchamajigger work
 
 Body of commit message is a few lines of text, explaining things
 in more detail, possibly giving some background about the issue
@@ -123,7 +123,7 @@ in Python code then please write unit tests in the tests/ directory.
 When finished, verify that the self-test works.
 
 ```python
-python setup.py test
+$ python setup.py test
 ```
 
 Make sure that all tests pass. Please, do not submit patches that fail.
