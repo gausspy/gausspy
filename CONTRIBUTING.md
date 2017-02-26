@@ -65,12 +65,6 @@ and start hacking:
 $ git checkout -b my-feature-branch -t origin/dev
 ```
 
-#### Formatting code
-
-We use [.editorconfig][] to configure our editors for proper code formatting. If you don't
-use a tool that supports editorconfig be sure to configure your editor to use the settings
-equivalent to our .editorconfig file.
-
 #### Commit your changes
 
 Make sure git knows your name and email address:
@@ -91,7 +85,7 @@ changed and why. Follow these guidelines when writing one:
 A good commit log looks like this:
 
 ```
-Fixing Issue #123: make the whatchamajigger work in MarkLogic 8
+Fixing Issue #123: make the whatchamajigger work
 
 Body of commit message is a few lines of text, explaining things
 in more detail, possibly giving some background about the issue
@@ -120,7 +114,7 @@ $ git rebase upstream/dev
 
 We are working hard to improve GaussPy's testing. If you add new functions
 in Python code then please write unit tests in the tests/ directory.
-When finished, verify that the self-test works.
+When finished, verify that the self-test works
 
 ```python
 python setup.py test
