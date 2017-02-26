@@ -109,15 +109,20 @@ $ git fetch upstream
 $ git rebase upstream/dev
 ```
 
-
 #### Test your code
 
 We are working hard to improve GaussPy's testing. If you add new functions
 in Python code then please write unit tests in the tests/ directory.
-When finished, verify that the self-test works
+When finished, verify that the self-test works. First install `pytest`
+
+```shell
+pip install pytest
+```
+
+Then run the tests via:
 
 ```python
-python setup.py test
+pytests tests
 ```
 
 Make sure that all tests pass. Please, do not submit patches that fail.
