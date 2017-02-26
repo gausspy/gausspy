@@ -1,0 +1,65 @@
+#language: python
+
+notifications:
+    email: false
+
+#python:
+    #- "2.7"
+    #- "2.6"
+    #- "3.2"
+    #- "3.3"
+    #- "3.4"
+
+#before_install:
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pyenv-virtualenv; fi
+
+
+
+# use a virtual environment to install python packages
+virtualenv:
+  system_site_packages: true
+
+# install the relevant python packages, -qq will prevent excess output
+# matrix:
+    # include:
+      # - os: linux
+    #: required # command to install dependencies
+    #- os: osx
+    #
+os: 
+  - osx
+  - linux
+
+sudo: required
+
+before_install:
+  - echo $TRAVIS_OS_NAME
+    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then ./.travis/before_install_osx.sh; fi
+    #- if [[ $TRAVIS_OS_NAME == 'linux' ]]; then ./.travis/before_install_linux.sh; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gsl; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then easy_install pip; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install numpy; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install -I scipy==0.17.0; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install matplotlib; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install h5py; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install lmfit; fi
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then pip install pytest; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get -qq install libblas-dev liblapack-dev gfortran -; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get -qq install libgsl0-dev -y; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get install -qq python-numpy -y; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then pip install --upgrade pip; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then pip install -I scipy==0.17.0; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get install -qq python-matplotlib -y; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get install -qq python-h5py -y; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then apt-get -qq install libhdf5-serial-dev hdf5-tools -y; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then pip install lmfit; fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then pip install pytest; fi
+
+install: 
+    #- cat build/bdist.linux-x86_64/egg/lmfit/minimizer.py
+    - python setup.py install
+
+# command to run tests
+script: pytest tests
+
