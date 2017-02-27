@@ -1,3 +1,6 @@
+# GaussPy
+Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
+
 # Installation
 
 ### Dependencies
@@ -103,7 +106,6 @@ GaussPy then use
 ```bash
 python setup.py install --user
 ```
-change the 'requires' statement in setup.py to include `scipy` and `lmfit`.
 
 ### Contributing to GaussPy
 
