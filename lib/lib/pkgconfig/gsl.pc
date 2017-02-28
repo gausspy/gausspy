@@ -1,0 +1,11 @@
+prefix=/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib
+exec_prefix=/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib
+libdir=/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib/lib
+includedir=/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 1.16
+Libs: -L/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib/lib -lgsl ${GSL_CBLAS_LIB}  -lm 
+Cflags: -I/Users/clairemurray/Desktop/gausspy/setup/gausspy/lib/include

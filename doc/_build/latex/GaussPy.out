@@ -1,0 +1,32 @@
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 1
+\BOOKMARK [0][-]{chapter.2}{Installation}{}% 2
+\BOOKMARK [1][-]{section.2.1}{Dependencies}{chapter.2}% 3
+\BOOKMARK [1][-]{section.2.2}{Optional Dependencies}{chapter.2}% 4
+\BOOKMARK [1][-]{section.2.3}{Download GaussPy}{chapter.2}% 5
+\BOOKMARK [1][-]{section.2.4}{Installing Dependencies on Linux}{chapter.2}% 6
+\BOOKMARK [1][-]{section.2.5}{Installing Dependencies on OSX}{chapter.2}% 7
+\BOOKMARK [1][-]{section.2.6}{Installing GaussPy}{chapter.2}% 8
+\BOOKMARK [0][-]{chapter.3}{Simple Example Tutorial}{}% 9
+\BOOKMARK [1][-]{section.3.1}{Constructing a GaussPy-Friendly Dataset}{chapter.3}% 10
+\BOOKMARK [1][-]{section.3.2}{Running GaussPy}{chapter.3}% 11
+\BOOKMARK [1][-]{section.3.3}{Plot Decomposition Results}{chapter.3}% 12
+\BOOKMARK [0][-]{chapter.4}{Multiple Gaussians Tutorial}{}% 13
+\BOOKMARK [1][-]{section.4.1}{Constructing a GaussPy-Friendly Dataset}{chapter.4}% 14
+\BOOKMARK [1][-]{section.4.2}{Running GaussPy}{chapter.4}% 15
+\BOOKMARK [1][-]{section.4.3}{Plot Decomposition Results}{chapter.4}% 16
+\BOOKMARK [0][-]{chapter.5}{Training AGD}{}% 17
+\BOOKMARK [1][-]{section.5.1}{Creating a Synthetic Training Dataset}{chapter.5}% 18
+\BOOKMARK [1][-]{section.5.2}{Training the Algorithm}{chapter.5}% 19
+\BOOKMARK [1][-]{section.5.3}{Running GaussPy using Trained }{chapter.5}% 20
+\BOOKMARK [0][-]{chapter.6}{Two-Phase Decompositon}{}% 21
+\BOOKMARK [1][-]{section.6.1}{Training for Two Phases: 1 and 2}{chapter.6}% 22
+\BOOKMARK [0][-]{chapter.7}{Prepping a Datacube}{}% 23
+\BOOKMARK [1][-]{section.7.1}{Storing Data cube in GaussPy-Friendly Format}{chapter.7}% 24
+\BOOKMARK [1][-]{section.7.2}{Creating a Synthetic Training Dataset}{chapter.7}% 25
+\BOOKMARK [1][-]{section.7.3}{Training AGD to Select \040values}{chapter.7}% 26
+\BOOKMARK [1][-]{section.7.4}{Decomposing the Datacube}{chapter.7}% 27
+\BOOKMARK [0][-]{chapter.8}{Behind the Scenes}{}% 28
+\BOOKMARK [1][-]{section.8.1}{Basic concepts}{chapter.8}% 29
+\BOOKMARK [1][-]{section.8.2}{Dealing with noise}{chapter.8}% 30
+\BOOKMARK [1][-]{section.8.3}{Two phases}{chapter.8}% 31
+\BOOKMARK [1][-]{section.8.4}{An alternative approach}{chapter.8}% 32

@@ -1,0 +1,288 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Behind the Scenes &mdash; GaussPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GaussPy 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Prepping a Datacube" href="dataprep.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dataprep.html" title="Prepping a Datacube"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="behind-the-scenes">
+<span id="method"></span><h1>Behind the Scenes<a class="headerlink" href="#behind-the-scenes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-concepts">
+<h2>Basic concepts<a class="headerlink" href="#basic-concepts" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">GaussPy</span></code> is a Python implementation of the AGD algorithm described
+in <a class="reference external" href="http://iopscience.iop.org/article/10.1088/0004-6256/149/4/138/meta">Lindner et al. (2015), AJ, 149, 138</a>. At
+its core, AGD is a fast, automatic, extremely versatile way of
+providing initial guesses for fitting Gaussian components to a
+function of the form <span class="math">\(f(x) + n(x)\)</span>, where <span class="math">\(n(x)\)</span> is a term
+modeling possible contributions from noise. It is important to
+emphasize here that although we use terminology coming from
+radio-astronomy all the ideas upon which the code is founded can be
+applied to any function of this form, moreover, non-Gaussian
+components can also be in principle extracted with our methodology,
+something we will include in a future release of the code.</p>
+<p>Ideally, if blending of components was not an issue and <span class="math">\(n(x)=0\)</span>
+the task of fitting Gaussians to a given spectrum would be reduced to
+find local maxima of <span class="math">\(f(x)\)</span>. However, both of these assumptions
+dramatically fail in practical applications, where blending of lines
+is an unavoidable issue and noise is intrinsic to the process of data
+acquisition. In that case, looking for solutions of <span class="math">\({\rm
+d}f(x)/{\rm d}x = 0\)</span> is not longer a viable route to find local
+extrema of <span class="math">\(f(x)\)</span>, instead a different approach must be taken.</p>
+<p>AGD uses the fact that a local maximum in <span class="math">\(f(x)\)</span> is also a local
+minimum in the curvature. That is, the algorithm looks for points
+<span class="math">\(x^*\)</span> for which the following conditions are satisfied.</p>
+<ul class="simple">
+<li>The function <span class="math">\(f(x)\)</span> has a non-trivial value</li>
+</ul>
+<div class="math" id="equation-f0const">
+<span class="eqno">(1)</span>\[\begin{split}f(x^*) &gt; \epsilon_0.\end{split}\]</div>
+<p>In an ideal situation where the contribution from noise vanishes we
+can take <span class="math">\(\epsilon_0=0\)</span>. However, when random fluctuations are
+added to the target function, this condition needs to be modified
+accordingly. A good selection of <span class="math">\(\epsilon_0\)</span> thus needs to be
+in proportion to the RMS of the analyzed signal.</p>
+<ul class="simple">
+<li>Next we require that the function <span class="math">\(f(x)\)</span> has a &#8220;bump&#8221; in
+<span class="math">\(x^*\)</span></li>
+</ul>
+<div class="math" id="equation-f2const">
+<span class="eqno">(2)</span>\[\begin{split}\left.\frac{{\rm d}^2f}{{\rm d}x^2}\right|_{x=x^*}  &lt; 0,\end{split}\]</div>
+<p>this selection of the inequality ensures also that such feature has
+negative curvature, or equivalently, that the point <span class="math">\(x^*\)</span> is
+candidate for being the position of a local maximum of
+<span class="math">\(f(x)\)</span>. Note however that this is not a sufficient condition, we
+also need to ensure that the curvature has a minimum at this location.</p>
+<ul class="simple">
+<li>This is achieved by imposing two additional constraints on
+<span class="math">\(f(x)\)</span></li>
+</ul>
+<div class="math" id="equation-f3const">
+<span class="eqno">(3)</span>\[\left.\frac{{\rm d}^3f}{{\rm d}x^3}\right|_{x=x^*} = 0\]</div>
+<div class="math" id="equation-f4const">
+<span class="eqno">(4)</span>\[\begin{split}\left.\frac{{\rm d}^4f}{{\rm d}x^4}\right|_{x=x^*} &gt; 0\end{split}\]</div>
+<p>These 4 constraints then ensure that the point <span class="math">\(x^*\)</span> is a local
+minimum of the curvature. Furthermore, even in the presence of both
+blending and noise, these expressions will yield the location of all
+the points that are possible candidates for the positions of Gaussian
+components in the target function. Fig. <a class="pageref" href="#curvature"> 1</a> is an
+example of a function defined as the sum of three gaussians for which
+the conditions Eq. <a href="#equation-f0const">(1)</a> - <a href="#equation-f4const">(4)</a> are satisfied and the
+local minima of curvature are successfully found, even when blending
+of components is relevant.</p>
+<div class="align-center figure" id="id1">
+<span id="curvature"></span><a class="reference internal image-reference" href="_images/curvature.png"><img alt="alternate text" src="_images/curvature.png" style="width: 4in;" /></a>
+<p class="caption"><span class="caption-text">Figure 1: Example of the points of negative curvature of the function
+<span class="math">\(f(x)\)</span>. In this case <span class="math">\(f(x)\)</span> is the sum of three
+independent Gaussian functions (top). The vertical lines in each
+panel show the conditions imposed on the derivatives to define the
+points <span class="math">\(x^*\)</span>.</span></p>
+</div>
+</div>
+<div class="section" id="dealing-with-noise">
+<h2>Dealing with noise<a class="headerlink" href="#dealing-with-noise" title="Permalink to this headline">¶</a></h2>
+<p>The numeral problem related to the solution shown in the previous
+section comes from the fact that calculating Eq. <a href="#equation-f2const">(2)</a> -
+<a href="#equation-f4const">(4)</a> is not trivial in the presence of noise. For instance,
+if the top panel of Fig. <a class="pageref" href="#curvature"> 1</a> is sampled with 100
+channels, and in each panel a random uncorrelated noise component is
+added at the 10% level, a simple finite difference prescription to
+calculate the derivative would lead to variations of the order
+<span class="math">\(\sim 1 / {\rm d}x \sim 10\)</span>. That is, the signal would be buried
+within the noise!</p>
+<div class="align-center figure" id="id2">
+<span id="deriv"></span><a class="reference internal image-reference" href="_images/deriv.png"><img alt="alternate text" src="_images/deriv.png" style="width: 4in;" /></a>
+<p class="caption"><span class="caption-text">Figure 2: The top panel shows the same function used in
+Fig. <a class="pageref" href="#curvature"> 1</a> but now random noise has been added to each
+channel. In the bottom panel we show various estimates of the
+first derivative. <span class="math">\(\alpha=0\)</span> corresponds to the finite
+differences method, larger values of <span class="math">\(\alpha\)</span> makes the
+function smoother.</span></p>
+</div>
+<p>In order to solve this problem AGD uses a regularized version of the
+derivative (<a class="reference external" href="http://www.amazon.com/Computational-Methods-Problems-Frontiers-Mathematics/dp/0898715075">Vogel (2002)</a>). If
+<span class="math">\(u = {\rm d}f(x)/{\rm d}x\)</span>, then the problem we solve is
+<span class="math">\(u = {\rm arg}\min_u\{R[u]\}\)</span> where <span class="math">\(R[u]\)</span> is the
+functional defined by</p>
+<div class="math" id="equation-deriv">
+<span class="eqno">(5)</span>\[R[u] = \int | A u - f | + \alpha \int \sqrt{(Du)^2 +
+       \beta^2},\]</div>
+<p>where <span class="math">\(A u = \int {\rm d}x\; u\)</span>. Note that if <span class="math">\(\alpha=0\)</span>
+this is equivalent to find the derivative of the function
+<span class="math">\(f(x)\)</span>, since we will be minimizing the difference between the
+integral of <span class="math">\(u = {\rm d}f(x)/{\rm d}x\)</span> and <span class="math">\(f(x)\)</span>
+itself. This, however, has the problem we discussed in the previous
+paragraph. Fig. <a class="pageref" href="#deriv"> 2</a> shows this case, it is clear that this
+simple approach fails to recover the behavior of the target
+function. If, on the other hand, <span class="math">\(\alpha &gt; 0\)</span> an additional
+weight is added to the inverse problem in Eq. <a href="#equation-deriv">(5)</a>, now the
+differences between successive points in <span class="math">\(u(x)\)</span> are taken into
+account.</p>
+<p>The parameter <span class="math">\(\alpha\)</span> then controls how smooth the derivative
+is going to be. The risk here is that overshooting the value of this
+number can erase the intrinsic variations of the actual
+derivative. What is the optimal value of <span class="math">\(\alpha\)</span>? This question
+is answered by <code class="docutils literal"><span class="pre">GaussPy</span></code> through the training process of the
+algorithm. We refer the reader to the example chapters to learn how to
+use this feature.</p>
+</div>
+<div class="section" id="two-phases">
+<h2>Two phases<a class="headerlink" href="#two-phases" title="Permalink to this headline">¶</a></h2>
+<p>Within <code class="docutils literal"><span class="pre">GaussPy</span></code> is built-in the ability to automatically choose the
+best value of <span class="math">\(\alpha\)</span> for any input data set. Special caution
+has to be taken here. If a component is too narrow it can be confused
+with noise and smoothed away by the algorithm!</p>
+<p>In order to circumvent this issue <code class="docutils literal"><span class="pre">GaussPy</span></code> can be trainend in
+&#8220;two-steps&#8221;. One for narrow components, and one for broad
+components. The result then is two independent values <span class="math">\(\alpha_1\)</span>
+and <span class="math">\(\alpha_2\)</span> each giving information about the scales of
+different features in the target function.</p>
+</div>
+<div class="section" id="an-alternative-approach">
+<h2>An alternative approach<a class="headerlink" href="#an-alternative-approach" title="Permalink to this headline">¶</a></h2>
+<p>There is another alternative for calculating derivatives of
+noise-ridden data, namely convolving the function with a low-pass
+filter kernel, e.g., a Gaussian filter. Although the size of the
+filter can be optimized by using a training routine, in a similar
+fashion as we did for the <span class="math">\(\alpha\)</span> scales, this technique is much
+more agressive and could lead to losses of important features in the
+signal. Indeed, the total variation scheme that <code class="docutils literal"><span class="pre">GaussPy</span></code> uses could
+be thought of as the first order approximation in a perturbative
+expansion of a Gaussian filter.</p>
+<p>Notwhistanding this caveat <code class="docutils literal"><span class="pre">GaussPy</span></code> implements also a Gaussian
+filter as an option for taking the numerical derivatives. In total,
+there are three selectable <code class="docutils literal"><span class="pre">modes</span></code> within the package for
+calculating <span class="math">\(f(x) + n(x)\)</span></p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">GaussianDecomposer.set('mode','python')</span></code>: This will execute
+<code class="docutils literal"><span class="pre">GaussPy</span></code> with a <code class="docutils literal"><span class="pre">Python</span></code> implementation of the total variation
+algorithm. The code is clean to read, easy to understand and modify,
+but it may perform slow for large datasets.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">GaussianDecomposer.set('mode','C')</span></code>: This chooses a <code class="docutils literal"><span class="pre">C</span></code>
+implementation of the TV algorithm when calculating the
+derivative. It is less time-consuming that the <code class="docutils literal"><span class="pre">Python</span></code> version
+but comes at the price of intelligibility of some parts of the
+code.</p>
+<p>Both <code class="docutils literal"><span class="pre">Python</span></code> and <code class="docutils literal"><span class="pre">C</span></code> modes yield the same results and,
+therefore, are interchangable. Our suggestion is to use <code class="docutils literal"><span class="pre">Python</span></code>
+if you are planning to delve into the details of the code, and <code class="docutils literal"><span class="pre">C</span></code>
+if you are after efficiency in large dataset.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">GaussianDecomposer.set('mode','conv')</span></code>: When this mode is set,
+the function is Gaussian-filtered prior to calculating the numerical
+derivative. In this case, the constant <span class="math">\(\alpha\)</span> is taken to be
+the size of the kernel</p>
+<div class="math" id="equation-kernel">
+<span class="eqno">(6)</span>\[\tilde{f}(x) = (f \star K_\alpha)(x) \quad\mbox{with}\quad
+     K_\alpha(x) = \frac{1}{\sqrt{2\pi \alpha^2}}{\rm e}^{-x^2/2\alpha^2}.\]</div>
+<p>Once this mode is selected the training for choosing the optimal
+size of the filter proceeds in the same way we have discussed in the
+previous sections, i.e., nothing else has to be changed.</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Behind the Scenes</a><ul>
+<li><a class="reference internal" href="#basic-concepts">Basic concepts</a></li>
+<li><a class="reference internal" href="#dealing-with-noise">Dealing with noise</a></li>
+<li><a class="reference internal" href="#two-phases">Two phases</a></li>
+<li><a class="reference internal" href="#an-alternative-approach">An alternative approach</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dataprep.html"
+                        title="previous chapter">Prepping a Datacube</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/method.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dataprep.html" title="Prepping a Datacube"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Robert Lindner, Carlos Vera-Ciro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>
