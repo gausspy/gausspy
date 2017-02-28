@@ -10,7 +10,7 @@ package which we know to be compatible with GaussPy.
 
 * [python 2.7](http://www.numpy.org/)
 
-* [numpy (v1.6.1)](http://www.numpy.org/)
+* [numpy (v1.12.1)](http://www.numpy.org/)
 
 * [scipy (v0.17.0)](http://www.scipy.org/)
 
