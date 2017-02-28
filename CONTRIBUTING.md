@@ -9,7 +9,7 @@ through the process.
  
 ## <a name="question"></a> Got a Question or Problem?
 
-If you have questions about how to use Roxy, please direct these to the
+If you have questions about how to use GaussPy, please direct these to the
 GaussPy Mailing List (gausspy.software@gmail.com).
 
 ## <a name="issue"></a> Found an Issue?
@@ -109,15 +109,20 @@ $ git fetch upstream
 $ git rebase upstream/dev
 ```
 
-
 #### Test your code
 
 We are working hard to improve GaussPy's testing. If you add new functions
 in Python code then please write unit tests in the tests/ directory.
-When finished, verify that the self-test works
+When finished, verify that the self-test works. First install `pytest`
+
+```shell
+pip install pytest
+```
+
+Then run the tests via:
 
 ```python
-python setup.py test
+pytests tests
 ```
 
 Make sure that all tests pass. Please, do not submit patches that fail.

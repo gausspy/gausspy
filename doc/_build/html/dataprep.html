@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Prepping a Datacube &mdash; GaussPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GaussPy 1.0 documentation" href="index.html" />
+    <link rel="next" title="Behind the Scenes" href="method.html" />
+    <link rel="prev" title="Simple Example Tutorial" href="tutorial.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="method.html" title="Behind the Scenes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Simple Example Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="prepping-a-datacube">
+<span id="dataprep"></span><h1>Prepping a Datacube<a class="headerlink" href="#prepping-a-datacube" title="Permalink to this headline">¶</a></h1>
+<p>In this example we will download a datacube to decompose into individual
+spectra. The example cube we will use is from the GALFA-HI emission survey at
+the Arecibo Observatory, specifically the <a class="reference external" href="https://sites.google.com/site/galfahi/data">M33 datacube</a> from <a class="reference external" href="http://adsabs.harvard.edu/abs/2009ApJ...703.1486P">Putman et al. 2009</a>. You can directly download
+the cube from here:</p>
+<p><a class="reference external" href="http://www.astro.columbia.edu/~mputman/M33only.fits.gz">http://www.astro.columbia.edu/~mputman/M33only.fits.gz</a></p>
+<div class="section" id="storing-data-cube-in-gausspy-friendly-format">
+<h2>Storing Data cube in GaussPy-Friendly Format<a class="headerlink" href="#storing-data-cube-in-gausspy-friendly-format" title="Permalink to this headline">¶</a></h2>
+<p>Before decomposing the datacube, we must store the data in a format readable by
+GaussPy. The following code provides an example of how to read a fits-formatted
+datacube and store the spectral information. The necessary parameters to specify
+here are:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA</span></code>: the fits filename of the target data cube</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA_GAUSSPY</span></code>: the filename to store the GaussPy-friendly data in</li>
+<li><code class="docutils literal"><span class="pre">RMS</span></code>: estimate of the RMS uncertainty per channel for constructing the
+error arrays</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Read fits datacube and save in GaussPy format</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+
+<span class="c1"># Specify necessary parameters</span>
+<span class="n">FILENAME_DATA</span> <span class="o">=</span> <span class="s1">&#39;M33only.fits&#39;</span>
+<span class="n">FILENAME_DATA_GAUSSPY</span> <span class="o">=</span> <span class="s1">&#39;cube.pickle&#39;</span>
+<span class="n">RMS</span> <span class="o">=</span> <span class="mf">0.06</span>
+
+<span class="n">hdu_list</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">FILENAME_DATA</span><span class="p">)</span>
+<span class="n">hdu</span> <span class="o">=</span> <span class="n">hdu_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">cube</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span>
+
+<span class="c1"># initialize</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">RMS</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># cycle through each spectrum</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+
+        <span class="c1"># get the spectrum</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+
+        <span class="c1"># get the spectrum location</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+
+        <span class="c1"># Enter results into GaussPy-friendly dataset</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_list&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">spectrum</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_values&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">errors</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">location</span><span class="p">]</span>
+
+<span class="c1"># Save decomposition information</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_GAUSSPY</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The output pickle file from the above example code contains a python dictionary
+with four keys, including the independent and dependent arrays (i.e. channels
+and spectral values), an array per spectrum describing the uncertainty per
+channel, and the (x,y) pixel location within the datacube for reference.</p>
+</div>
+<div class="section" id="creating-a-synthetic-training-dataset">
+<h2>Creating a Synthetic Training Dataset<a class="headerlink" href="#creating-a-synthetic-training-dataset" title="Permalink to this headline">¶</a></h2>
+<p>Before decomposing the target dataset, we need to train the AGD algorithm to
+select the best values of <span class="math">\(\log\alpha\)</span> in two-phase decomposition. First, we
+construct a synthetic training dataset composed of Gaussian components with
+parameters sampled randomly from ranges that represent the data as closely as
+possible.</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">RMS</span></code>: root mean square uncertainty per channel</li>
+<li><code class="docutils literal"><span class="pre">NCHANNELS</span></code>: number of channels per spectrum</li>
+<li><code class="docutils literal"><span class="pre">NSPECTRA</span></code>: number of spectra to include in the training dataset</li>
+<li><code class="docutils literal"><span class="pre">NCOMPS_lims</span></code>: range in total number of components to include in each
+spectrum</li>
+<li><code class="docutils literal"><span class="pre">AMP_lims,</span> <span class="pre">FWHM_lims,</span> <span class="pre">MEAN_lims</span></code>: range of possible Gaussian component
+values, amplitudes, FWHM and means, from which to build the spectra</li>
+<li><code class="docutils literal"><span class="pre">TRAINING_SET</span></code> : True or False, determines whether the decomposition
+&#8220;answers&#8221; are stored along with the data for accuracy verification in
+training</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_TRAIN</span></code> : filename for storing the training data</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Create training dataset with Gaussian profile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">mean</span><span class="p">):</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">fwhm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Estimate of the root-mean-square uncertainty per channel (RMS)</span>
+<span class="n">RMS</span> <span class="o">=</span> <span class="mf">0.06</span>
+
+<span class="c1"># Specify the number of spectral channels (NCHANNELS)</span>
+<span class="n">NCHANNELS</span> <span class="o">=</span> <span class="mi">680</span>
+
+<span class="c1"># Specify the number of spectra (NSPECTRA)</span>
+<span class="n">NSPECTRA</span> <span class="o">=</span> <span class="mi">200</span>
+
+<span class="c1"># Estimate the number of components</span>
+<span class="n">NCOMPS_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="c1"># Specify the min-max range of possible properties of the Gaussian function paramters:</span>
+<span class="n">AMP_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">30</span><span class="p">]</span>
+<span class="n">FWHM_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="mi">150</span><span class="p">]</span> <span class="c1"># channels</span>
+<span class="n">MEAN_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">400</span><span class="p">,</span><span class="mi">600</span><span class="p">]</span> <span class="c1"># channels</span>
+
+<span class="c1"># Indicate whether the data created here will be used as a training set</span>
+<span class="c1"># (a.k.a. decide to store the &quot;true&quot; answers or not at the end)</span>
+<span class="n">TRAINING_SET</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c1"># Specify the pickle file to store the results in</span>
+<span class="n">FILENAME_TRAIN</span> <span class="o">=</span> <span class="s1">&#39;cube_training_data.pickle&#39;</span>
+
+<span class="c1"># Initialize</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+<span class="c1"># Begin populating data</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NSPECTRA</span><span class="p">):</span>
+    <span class="n">spectrum_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+    <span class="n">amps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">ncomps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NCOMPS_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">NCOMPS_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">ncomps</span><span class="p">):</span>
+        <span class="c1"># Select random values for components within specified ranges</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">AMP_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">AMP_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">FWHM_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">FWHM_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">MEAN_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">MEAN_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Add Gaussian profile with the above random parameters to the spectrum</span>
+        <span class="n">spectrum_i</span> <span class="o">+=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">m</span><span class="p">)(</span><span class="n">chan</span><span class="p">)</span>
+
+        <span class="c1"># Append the parameters to initialized lists for storing</span>
+        <span class="n">amps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">fwhms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+    <span class="c1"># Enter results into AGD dataset</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_list&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">spectrum_i</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_values&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">errors</span><span class="p">]</span>
+
+    <span class="c1"># If training data, keep answers</span>
+    <span class="k">if</span> <span class="n">TRAINING_SET</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;amplitudes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;amplitudes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">amps</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;fwhms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fwhms&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">fwhms</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;means&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">means</span><span class="p">]</span>
+
+<span class="c1"># Dump synthetic data into specified filename</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_TRAIN</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="training-agd-to-select-values">
+<h2>Training AGD to Select <span class="math">\(\alpha\)</span> values<a class="headerlink" href="#training-agd-to-select-values" title="Permalink to this headline">¶</a></h2>
+<p>With a synthetic training dataset in hand, we train AGD to select two values of
+<span class="math">\(\log\alpha\)</span> for the two-phase decomposition, <span class="math">\(\log\alpha_1\)</span> and
+<span class="math">\(\log\alpha_2\)</span>. The necessary parameters to specify are:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">FILENAME_TRAIN</span></code>: the pickle file containing the training dataset in GaussPy
+format</li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal to noise ratio below which GaussPy will not fit a
+component</li>
+<li><code class="docutils literal"><span class="pre">alpha1_initial,</span> <span class="pre">alpha2_initial</span></code> initial choices of the two <span class="math">\(\log\alpha\)</span>
+parameters</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Train AGD using synthetic dataset</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+<span class="nb">reload</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span>
+
+<span class="c1"># Set necessary parameters</span>
+<span class="n">FILENAME_TRAIN</span> <span class="o">=</span> <span class="s1">&#39;cube_training_data.pickle&#39;</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">alpha1_initial</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">alpha2_initial</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Next, load the training dataset for analysis:</span>
+<span class="n">g</span><span class="o">.</span><span class="n">load_training_data</span><span class="p">(</span><span class="n">FILENAME_TRAIN</span><span class="p">)</span>
+
+<span class="c1"># Set GaussPy parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+
+<span class="c1"># Train AGD starting with initial guess for alpha</span>
+<span class="n">g</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">alpha1_initial</span> <span class="o">=</span> <span class="n">alpha1_initial</span><span class="p">,</span> <span class="n">alpha2_initial</span> <span class="o">=</span> <span class="n">alpha2_initial</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Training: starting with values of <span class="math">\(\log\alpha_{1,\rm \, initial}=3\)</span> and
+<span class="math">\(\log\alpha_{2,\rm \, initial}=12\)</span>, the training process converges to
+<span class="math">\(\log\alpha_1=2.87\)</span> and <span class="math">\(\log\alpha_2=10.61\)</span> with an accuracy of 71.2%
+within 90 iterations.</p>
+</div>
+<div class="section" id="decomposing-the-datacube">
+<h2>Decomposing the Datacube<a class="headerlink" href="#decomposing-the-datacube" title="Permalink to this headline">¶</a></h2>
+<p>With the trained values in hand, we now decompose the target dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Decompose multiple Gaussian dataset using AGD with TRAINED alpha</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Specify necessary parameters</span>
+<span class="n">alpha1</span> <span class="o">=</span> <span class="mf">2.87</span>
+<span class="n">alpha2</span> <span class="o">=</span> <span class="mf">10.61</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+<span class="n">FILENAME_DATA_GAUSSPY</span> <span class="o">=</span> <span class="s1">&#39;cube.pickle&#39;</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;cube_decomposed.pickle&#39;</span>
+
+<span class="c1"># Load GaussPy</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Setting AGD parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;alpha1&#39;</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;alpha2&#39;</span><span class="p">,</span> <span class="n">alpha2</span><span class="p">)</span>
+
+<span class="c1"># Run GaussPy</span>
+<span class="n">decomposed_data</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">batch_decomposition</span><span class="p">(</span><span class="n">FILENAME_DATA_GAUSSPY</span><span class="p">)</span>
+
+<span class="c1"># Save decomposition information</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">decomposed_data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And plot the results for an example set of 9 spectra, randomly selected, to see
+how well the decomposition went.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Plot GaussPy results for selections of cube LOS</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="c1"># load the original data</span>
+<span class="n">FILENAME_DATA_GAUSSPY</span> <span class="o">=</span> <span class="s1">&#39;cube.pickle&#39;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_GAUSSPY</span><span class="p">))</span>
+
+<span class="c1"># load decomposed data</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;cube_decomposed.pickle&#39;</span>
+<span class="n">data_decomposed</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">))</span>
+
+<span class="n">index_values</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5000</span><span class="p">))</span>
+
+<span class="c1"># plot random results</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">0</span><span class="p">,[</span><span class="mi">9</span><span class="p">,</span><span class="mi">9</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="n">index_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="n">fit_fwhms</span> <span class="o">=</span> <span class="n">data_decomposed</span><span class="p">[</span><span class="s1">&#39;fwhms_fit&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">fit_means</span> <span class="o">=</span> <span class="n">data_decomposed</span><span class="p">[</span><span class="s1">&#39;means_fit&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">fit_amps</span> <span class="o">=</span> <span class="n">data_decomposed</span><span class="p">[</span><span class="s1">&#39;amplitudes_fit&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="c1"># Plot individual components</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit_amps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fit_amps</span><span class="p">)):</span>
+            <span class="n">amp</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span>  <span class="n">fit_amps</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">fit_fwhms</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">fit_means</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">yy</span> <span class="o">=</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">fwhm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">yy</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;purple&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="mi">600</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Channels&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;T_B (K)&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Fig. <a class="pageref" href="#cube-decomposed"> 1</a> displays an example set of spectra from the data
+cube and the GaussPy decomposition using trained values of <span class="math">\(\log\alpha_1=2.87\)</span>
+and <span class="math">\(\log\alpha_2=10.61\)</span>.</p>
+<div class="align-center figure" id="id1">
+<span id="cube-decomposed"></span><a class="reference internal image-reference" href="_images/cube_decomposed.png"><img alt="alternate text" src="_images/cube_decomposed.png" style="width: 6in;" /></a>
+<p class="caption"><span class="caption-text">Figure 1: Example spectra from the GALFA-HI M33 datacube, decomposed by GaussPy following two-phase training.</span></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Prepping a Datacube</a><ul>
+<li><a class="reference internal" href="#storing-data-cube-in-gausspy-friendly-format">Storing Data cube in GaussPy-Friendly Format</a></li>
+<li><a class="reference internal" href="#creating-a-synthetic-training-dataset">Creating a Synthetic Training Dataset</a></li>
+<li><a class="reference internal" href="#training-agd-to-select-values">Training AGD to Select <span class="math">\(\alpha\)</span> values</a></li>
+<li><a class="reference internal" href="#decomposing-the-datacube">Decomposing the Datacube</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tutorial.html"
+                        title="previous chapter">Simple Example Tutorial</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="method.html"
+                        title="next chapter">Behind the Scenes</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dataprep.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="method.html" title="Behind the Scenes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Simple Example Tutorial"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Robert Lindner, Carlos Vera-Ciro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>

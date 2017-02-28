@@ -1,3 +1,10 @@
+# GaussPy
+A python tool for implementing the Autonomous Gaussian Decomposition algorithm.
+
+Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
+
+[Lindner et al. 2015](https://arxiv.org/abs/1409.2840)
+
 # Installation
 
 ### Dependencies
@@ -7,7 +14,7 @@ package which we know to be compatible with GaussPy.
 
 * [python 2.7](http://www.numpy.org/)
 
-* [numpy (v1.6.1)](http://www.numpy.org/)
+* [numpy (v1.12.1)](http://www.numpy.org/)
 
 * [scipy (v0.17.0)](http://www.scipy.org/)
 
@@ -103,7 +110,6 @@ GaussPy then use
 ```bash
 python setup.py install --user
 ```
-change the 'requires' statement in setup.py to include `scipy` and `lmfit`.
 
 ### Contributing to GaussPy
 

@@ -1,0 +1,729 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simple Example Tutorial &mdash; GaussPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="GaussPy 1.0 documentation" href="index.html" />
+    <link rel="next" title="Prepping a Datacube" href="dataprep.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dataprep.html" title="Prepping a Datacube"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="simple-example-tutorial">
+<span id="id1"></span><h1>Simple Example Tutorial<a class="headerlink" href="#simple-example-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="constructing-a-gausspy-friendly-dataset">
+<h2>Constructing a GaussPy-Friendly Dataset<a class="headerlink" href="#constructing-a-gausspy-friendly-dataset" title="Permalink to this headline">¶</a></h2>
+<p>Before implementing AGD, we first must put data into a format readable by
+GaussPy. GaussPy requires the indepenent and dependent spectral arrays (e.g.,
+channels and amplitude) and an estimate of the per-channel noise in the specrum.</p>
+<p>To begin, we can create a simple Gaussian function of the form:</p>
+<div class="math" id="equation-spectra">
+<span class="eqno">(1)</span>\[S(x_i) = \sum_{k=1}^{\texttt{NCOMPS}} {\texttt{AMP}_k} \exp\left[-\frac{4\ln 2 (x_i
+- \texttt{MEAN}_k)^2}{\texttt{FWHM}_k^2} \right] + \texttt{NOISE},
+\qquad i = 1, \cdots, \texttt{NCHANNELS}\]</div>
+<p>where,</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">NCOMPS</span></code> is the number of Gaussian components in each spectrum.</li>
+<li><code class="docutils literal"><span class="pre">(AMP,</span> <span class="pre">MEAN,</span> <span class="pre">FWHM)</span></code> are the amplitude, mean location, and
+full-width-half-maximum of each Gaussian component.</li>
+<li><code class="docutils literal"><span class="pre">NCHANNELS</span></code> is the number of channels in the spectrum (sets the
+resolution).</li>
+<li><code class="docutils literal"><span class="pre">NOISE</span></code> is the level of noise introduced in each spectrum, described by the root mean square (RMS) noise per channel.</li>
+</ol>
+<p>In the next example we will show how to implement this in python. We have made
+the following assumptions:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">NCOMPS</span> <span class="pre">=</span> <span class="pre">1</span></code> (to begin with a simple, single Gaussian)</li>
+<li><code class="docutils literal"><span class="pre">AMP</span> <span class="pre">=</span> <span class="pre">1.0,</span> <span class="pre">MEAN</span> <span class="pre">=</span> <span class="pre">256,</span> <span class="pre">FWHM</span> <span class="pre">=</span> <span class="pre">20</span></code> (fixed Gaussian parameters)</li>
+<li><code class="docutils literal"><span class="pre">NCHANNELS</span> <span class="pre">=</span> <span class="pre">512</span></code></li>
+<li><code class="docutils literal"><span class="pre">RMS</span> <span class="pre">=</span> <span class="pre">0.05</span></code></li>
+</ol>
+<p>In Fig. <a class="pageref" href="#simple-gaussian"> 1</a> we display the spectrum with the single Gaussian
+described above.</p>
+<div class="align-center figure" id="id6">
+<span id="simple-gaussian"></span><a class="reference internal image-reference" href="_images/simple_gaussian.png"><img alt="alternate text" src="_images/simple_gaussian.png" style="width: 5in;" /></a>
+<p class="caption"><span class="caption-text">Figure 1: Example spectrum containing a single Gaussian function with added spectral noise.</span></p>
+</div>
+<p>The following code describes an example of how to create a spectrum
+with a Gaussian shape and store the channels, amplitude and error arrays in a
+python pickle file to be read later by GaussPy.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Create simple Gaussian profile with added noise</span>
+<span class="c1"># Store in format required for GaussPy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="c1"># create a function which returns the values of the Gaussian function for a</span>
+<span class="c1"># given x</span>
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">mean</span><span class="p">):</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">fwhm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Data properties</span>
+<span class="n">RMS</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">NCHANNELS</span> <span class="o">=</span> <span class="mi">512</span>
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s1">&#39;simple_gaussian.pickle&#39;</span>
+
+<span class="c1"># Component properties</span>
+<span class="n">AMP</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">FWHM</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">MEAN</span> <span class="o">=</span> <span class="mi">256</span>
+
+<span class="c1"># Initialize</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+<span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+<span class="n">spectrum</span> <span class="o">+=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">AMP</span><span class="p">,</span> <span class="n">FWHM</span><span class="p">,</span> <span class="n">MEAN</span><span class="p">)(</span><span class="n">chan</span><span class="p">)</span>
+
+<span class="c1"># Enter results into AGD dataset</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_list&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">spectrum</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_values&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">errors</span><span class="p">]</span>
+
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-gausspy">
+<h2>Running GaussPy<a class="headerlink" href="#running-gausspy" title="Permalink to this headline">¶</a></h2>
+<p>With our simple dataset in hand, we can use GaussPy to decompose the spectrum
+into Gaussian functions. To do this, we must specify the smoothing parameter
+<span class="math">\(\alpha\)</span> (see Behind the Scenes chapter for more details). For now, we
+will guess a value of <span class="math">\(\log\alpha=1\)</span>. In later chapters
+we will discuss training the AGD algorithm to select the optimal value of
+<span class="math">\(\alpha\)</span>.</p>
+<p>The following is an example code for running GaussPy. We will use the &#8220;one-phase&#8221; decomposition to begin with. We must specify the following parameters:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">alpha1</span></code>: our choice for the value of <span class="math">\(\log\alpha\)</span>.</li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal-to-noise ratio threshold below which amplitude GaussPy will not fit a component.</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA</span></code>: the filename containing the dataset to-be-decomposed, constructed in the previous section (or any GaussPy-friendly dataset)</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA_DECOMP</span></code>: filename to store the decomposition results from GaussPy.</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Decompose simple dataset using AGD</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Specify necessary parameters</span>
+<span class="n">alpha1</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">FILENAME_DATA</span> <span class="o">=</span> <span class="s1">&#39;simple_gaussian.pickle&#39;</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;simple_gaussian_decomposed.pickle&#39;</span>
+
+<span class="c1"># Load GaussPy</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Setting AGD parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;alpha1&#39;</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">)</span>
+
+<span class="c1"># Run GaussPy</span>
+<span class="n">data_decomp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">batch_decomposition</span><span class="p">(</span><span class="n">FILENAME_DATA</span><span class="p">)</span>
+
+<span class="c1"># Save decomposition information</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>After AGD determines the Gaussian decomposition, GaussPy then performs a least squares fit of the inital AGD model to the data to produce a final fit solution. The file containing the fit results is a python pickle file. The contents of this file can be viewed by printing the keys within the saved dictionary via,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="n">data_decomp</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The most salient information included in this file are the values for the <code class="docutils literal"><span class="pre">amplitudes</span></code>, <code class="docutils literal"><span class="pre">fwhms</span></code> and <code class="docutils literal"><span class="pre">means</span></code> of each fitted Gaussian component. These include,</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">amplitudes_initial,</span> <span class="pre">fwhms_initial,</span> <span class="pre">means_initial</span></code> : the parameters of each Gaussian component determined by AGD (each array has length equal to the number of fitted components).</li>
+<li><code class="docutils literal"><span class="pre">amplitudes_fit,</span> <span class="pre">fwhms_fit,</span> <span class="pre">means_fit</span></code> : the parameters of each Gaussian component following a least-squares fit of the initial AGD model to the data.</li>
+<li><code class="docutils literal"><span class="pre">amplitudes_fit_err,</span> <span class="pre">fwhms_fit_err,</span> <span class="pre">means_fit_err</span></code> : uncertainities in the fitted Gaussian parameters, determined from the least-squares fit.</li>
+</ol>
+<p>GaussPy also stores the reduced <span class="math">\(\chi^2\)</span> value from the least-squares fit (<code class="docutils literal"><span class="pre">rchi2</span></code>), but this is currently under construction. This value can be computed outside of GaussPy easily.</p>
+</div>
+<div class="section" id="plot-decomposition-results">
+<h2>Plot Decomposition Results<a class="headerlink" href="#plot-decomposition-results" title="Permalink to this headline">¶</a></h2>
+<p>The following is an example python script for plotting the original spectrum and GaussPy decomposition results. We must specify the following parameters:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA</span></code>: the filename containing the dataset to-be-decomposed.</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA_DECOMP</span></code>: the filename containing the GaussPy decomposition results.</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Plot GaussPy results</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">mean</span><span class="p">):</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">fwhm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">unravel</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="nb">list</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+
+<span class="n">FILENAME_DATA</span> <span class="o">=</span> <span class="s1">&#39;simple_gaussian.pickle&#39;</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;simple_gaussian_decomposed.pickle&#39;</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA</span><span class="p">))</span>
+<span class="n">spectrum</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">])</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">])</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">])</span>
+
+<span class="n">data_decomp</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">))</span>
+<span class="n">means_fit</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">[</span><span class="s1">&#39;means_fit&#39;</span><span class="p">])</span>
+<span class="n">amps_fit</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">[</span><span class="s1">&#39;amplitudes_fit&#39;</span><span class="p">])</span>
+<span class="n">fwhms_fit</span> <span class="o">=</span> <span class="n">unravel</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">[</span><span class="s1">&#39;fwhms_fit&#39;</span><span class="p">])</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chan</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">means_fit</span><span class="p">)):</span>
+    <span class="n">component</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">amps_fit</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">fwhms_fit</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">means_fit</span><span class="p">[</span><span class="n">j</span><span class="p">])(</span><span class="n">chan</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">+=</span> <span class="n">component</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">r&#39;$\log\alpha=1.$&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;purple&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Errors&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Channels&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Amplitude&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">chan</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">spectrum</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Fig. <a class="pageref" href="#simple-gaussian-decomposed"> 2</a> displays the results of the
+decomposition using the above example python code. Clearly the fit to the simple
+Gaussian spectrum is good. If we were to vary the value of <span class="math">\(\log\alpha\)</span>, the
+fit would not change significantly as the fit to a spectrum containing a single
+Gaussian funciton does not depend sensitively on the initial guesses, especially
+because GaussPy performs a least-squares fit after determining initial guesses
+for the fitted Gaussian parameters with AGD.</p>
+<div class="align-center figure" id="id7">
+<span id="simple-gaussian-decomposed"></span><a class="reference internal image-reference" href="_images/simple_gaussian_decomposed.png"><img alt="alternate text" src="_images/simple_gaussian_decomposed.png" style="width: 5in;" /></a>
+<p class="caption"><span class="caption-text">Figure 2: Example spectrum containing a single Gaussian function with added spectral noise, decomposed using GaussPy.</span></p>
+</div>
+<p>In the ensuing chapters, we will move on from this simple example to consider spectra of increased complexity, as well as the effect of different values of <span class="math">\(\alpha\)</span> on the decomposition.</p>
+</div>
+</div>
+<div class="section" id="multiple-gaussians-tutorial">
+<span id="id2"></span><h1>Multiple Gaussians Tutorial<a class="headerlink" href="#multiple-gaussians-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id3">
+<h2>Constructing a GaussPy-Friendly Dataset<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>As discussed in the <a class="reference internal" href="#simple-example-tutorial"><span>Simple Example Tutorial</span></a>, before running GaussPy we
+must ensure that our data is in a format readable by GaussPy. In particular, for
+each spectrum, we need to provide the independent and dependent spectral arrays
+(i.e. channels and amplitudes) and an estimate of the uncertainity per channel.
+In the following example we will construct a spectrum containing multiple
+overlapping Gaussian components with added spectral noise, using Equation
+<a href="#equation-spectra">(1)</a>, and plot the results.</p>
+<p>We will make the following choices for parameters in this example:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">NCOMPS</span> <span class="pre">=</span> <span class="pre">3</span></code> : to include 3 Gaussian functions in the spectrum</li>
+<li><code class="docutils literal"><span class="pre">AMPS</span> <span class="pre">=</span> <span class="pre">[3,2,1]</span></code> : amplitudes of the included Gaussian functions</li>
+<li><code class="docutils literal"><span class="pre">FWHMS</span> <span class="pre">=</span> <span class="pre">[20,50,40]</span></code> : FWHM (in channels) of the included Gaussian functions</li>
+<li><code class="docutils literal"><span class="pre">MEANS</span> <span class="pre">=</span> <span class="pre">[220,250,300]</span></code> : mean positions (in channels) of the included Gaussian functions</li>
+<li><code class="docutils literal"><span class="pre">NCHANNELS</span> <span class="pre">=</span> <span class="pre">512</span></code> : number of channels in the spectrum</li>
+<li><code class="docutils literal"><span class="pre">RMS</span> <span class="pre">=</span> <span class="pre">0.05</span></code> : RMS noise per channel</li>
+<li><code class="docutils literal"><span class="pre">FILENAME</span></code> : name of file to write output data to</li>
+</ol>
+<p>The following code provides an example of how to construct a Gaussian function
+with the above parameters and store it in GaussPy-friendly format.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Create profile with multiple, blended Gaussians and added noise</span>
+<span class="c1"># Store in format required for GaussPy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">fwhm</span><span class="p">,</span> <span class="n">mean</span><span class="p">):</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">amp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">fwhm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Specify filename of output data</span>
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s1">&#39;multiple_gaussians.pickle&#39;</span>
+
+<span class="c1"># Number of Gaussian functions per spectrum</span>
+<span class="n">NCOMPS</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># Component properties</span>
+<span class="n">AMPS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">FWHMS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">40</span><span class="p">]</span> <span class="c1"># channels</span>
+<span class="n">MEANS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">220</span><span class="p">,</span><span class="mi">250</span><span class="p">,</span><span class="mi">300</span><span class="p">]</span> <span class="c1"># channels</span>
+
+<span class="c1"># Data properties</span>
+<span class="n">RMS</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">NCHANNELS</span> <span class="o">=</span> <span class="mi">512</span>
+
+<span class="c1"># Initialize</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+<span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+<span class="c1"># Create spectrum</span>
+<span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">AMPS</span><span class="p">,</span> <span class="n">FWHMS</span><span class="p">,</span> <span class="n">MEANS</span><span class="p">):</span>
+    <span class="n">spectrum</span> <span class="o">+=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">m</span><span class="p">)(</span><span class="n">chan</span><span class="p">)</span>
+
+<span class="c1"># Enter results into AGD dataset</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_list&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">spectrum</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_values&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">errors</span><span class="p">]</span>
+
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>A plot of the spectrum constructed above is included in Fig.
+<a class="pageref" href="#multiple-gaussians"> 3</a>.</p>
+<div class="align-center figure" id="id8">
+<span id="multiple-gaussians"></span><a class="reference internal image-reference" href="_images/multiple_gaussians.png"><img alt="alternate text" src="_images/multiple_gaussians.png" style="width: 5in;" /></a>
+<p class="caption"><span class="caption-text">Figure 3: Example spectrum containing multiple Gaussian functions with added spectral noise.</span></p>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>Running GaussPy<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>With our GaussPy-friendly dataset, we can now run GaussPy. As in the
+<a class="reference internal" href="#simple-example-tutorial"><span>Simple Example Tutorial</span></a>, we begin by selecting a value of <span class="math">\(\alpha\)</span>
+to use in the decomposition. In this example, we will select <span class="math">\(\log\alpha=0.5\)</span> to
+begin with. As before, the important parameters to specify are:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">alpha1</span></code>: our choice for the value of <span class="math">\(\log\alpha\)</span>.</li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal-to-noise ratio threshold below which amplitude
+GaussPy will not fit a component.</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA</span></code>: the filename containing the dataset to-be-decomposed,
+constructed above (or any GaussPy-friendly dataset)</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA_DECOMP</span></code>: the filename to store the decomposition results from
+GaussPy.</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Decompose multiple Gaussian dataset using AGD</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Specify necessary parameters</span>
+<span class="n">alpha1</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">FILENAME_DATA</span> <span class="o">=</span> <span class="s1">&#39;multiple_gaussians.pickle&#39;</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;multiple_gaussians_decomposed.pickle&#39;</span>
+
+<span class="c1"># Load GaussPy</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Setting AGD parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;alpha1&#39;</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">)</span>
+
+<span class="c1"># Run GaussPy</span>
+<span class="n">data_decomp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">batch_decomposition</span><span class="p">(</span><span class="n">FILENAME_DATA</span><span class="p">)</span>
+
+<span class="c1"># Save decomposition information</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>Plot Decomposition Results<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>Following the decomposition by GaussPy, we can explore the effect of the choice
+of <span class="math">\(\alpha\)</span> on the decomposition. In Fig.
+<a class="pageref" href="#multiple-gaussians-decomposed"> 4</a>, we have run GaussPy on the
+multiple-Gaussian dataset constructed above for three values of <span class="math">\(\alpha\)</span>,
+including <span class="math">\(\log\alpha=0.5, \log\alpha = 2.5\)</span> and <span class="math">\(\log\alpha=1.5\)</span> and plotted the
+results.</p>
+<div class="align-center figure" id="id9">
+<span id="multiple-gaussians-decomposed"></span><a class="reference internal image-reference" href="_images/multiple_gaussians_decomposed.png"><img alt="alternate text" src="_images/multiple_gaussians_decomposed.png" style="width: 7in;" /></a>
+<p class="caption"><span class="caption-text">Figure 4: Example spectrum containing multiple Gaussian functions with added spectral noise, decomposed using GaussPy for three values of the smoothing parameter <span class="math">\(\log\alpha\)</span>.</span></p>
+</div>
+<p>These results demonstrate that our choice of <span class="math">\(\alpha\)</span> has a significant
+effect on the success of the GaussPy model. In order to select the best value
+of <span class="math">\(\alpha\)</span> for a given dataset, we need to train the AGD algorithm using
+a training set. This process is described in the following section.</p>
+</div>
+</div>
+<div class="section" id="training-agd">
+<span id="training-example"></span><h1>Training AGD<a class="headerlink" href="#training-agd" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="creating-a-synthetic-training-dataset">
+<h2>Creating a Synthetic Training Dataset<a class="headerlink" href="#creating-a-synthetic-training-dataset" title="Permalink to this headline">¶</a></h2>
+<p>To select the optimal value of the smoothing parameter <span class="math">\(\alpha\)</span>, you must
+train the AGD algorithm using a training dataset with known underlying Gaussian
+decomposition. In other words, you need to have a dataset for which you know (or
+have an estimate of) the true Gaussian model. This training dataset can be
+composed of real (i.e. previously analyzed) or synthetically-constructed data,
+for which you have prior information about the underlying decomposition. This
+prior information is used to maximize the model accuracy by calibrating the
+<span class="math">\(\alpha\)</span> parameter used by AGD.</p>
+<p>Training datasets can be constructed by adding Gaussian functions with
+parameters drawn from known distributions with known uncertainties. For example,
+we can create a mock dataset with <code class="docutils literal"><span class="pre">NSPECTRA</span></code>-realizations of Equation
+<a href="#equation-spectra">(1)</a>.</p>
+<p>In the next example we will show how to implement this in python. For this
+example we will construct a synthetic training dataset with parameters similar
+to those found in the <a class="reference internal" href="#multiple-gaussians-tutorial"><span>Multiple Gaussians Tutorial</span></a> example. We must set
+the following parameters:</p>
+<ol class="arabic simple">
+<li><span class="math">\(\mathrm{NOISE} \sim N(0, {\rm RMS}) + f \times {\rm RMS}\)</span>
+with <code class="docutils literal"><span class="pre">RMS=0.05</span></code> and <span class="math">\(f=0\)</span></li>
+<li><code class="docutils literal"><span class="pre">NCOMPS</span> <span class="pre">=</span> <span class="pre">3</span></code></li>
+<li><code class="docutils literal"><span class="pre">NCHANNELS</span> <span class="pre">=</span> <span class="pre">512</span></code> : the number of channels per spectrum</li>
+<li><code class="docutils literal"><span class="pre">RMS</span> <span class="pre">=</span> <span class="pre">0.05</span></code> : RMS noise per channel.</li>
+<li><code class="docutils literal"><span class="pre">NSPECTRA</span> <span class="pre">=</span> <span class="pre">200</span></code> : number of synthetic spectra to create for the training dataset.</li>
+</ol>
+<ol class="arabic simple" start="4">
+<li><span class="math">\(\mathrm{AMP} \sim \mu(0.5, 4)\)</span> : the possible range of amplitudes to be included in each synthetic spectrum. Spectra with a more dominant contribution
+from the noise can also be generated and used as training sets for AGD.</li>
+<li><span class="math">\(\mathrm{FWHM} \sim \mu(20, 80)\)</span> and <span class="math">\(\mathrm{MEAN}\sim \mu(0.25, 0.75) \times \mathrm{NCHANNELS}\)</span> : the possible range of FWHM and mean positions of Gaussian functions to be included in each synthetic spectrum.</li>
+<li><code class="docutils literal"><span class="pre">TRAINING_SET</span></code> : True, determines whether the decomposition &#8220;true answers&#8221;
+are sorted along with the synthetic spectra for accuracy verification in
+training.</li>
+<li><code class="docutils literal"><span class="pre">FILENAME</span></code> : filename for storing the synthetically-constructed data</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Create training dataset with Gaussian profiles</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="c1"># Specify the number of spectral channels (NCHANNELS)</span>
+<span class="n">NCHANNELS</span> <span class="o">=</span> <span class="mi">512</span>
+
+<span class="c1"># Specify the number of spectra (NSPECTRA)</span>
+<span class="n">NSPECTRA</span> <span class="o">=</span> <span class="mi">200</span>
+
+<span class="c1"># Estimate of the root-mean-square uncertainty per channel (RMS)</span>
+<span class="n">RMS</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+<span class="c1"># Estimate the number of components</span>
+<span class="n">NCOMPS</span> <span class="o">=</span> <span class="mi">3</span>
+
+<span class="c1"># Specify the min-max range of possible properties of the Gaussian function paramters:</span>
+<span class="n">AMP_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">FWHM_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">80</span><span class="p">]</span> <span class="c1"># channels</span>
+<span class="n">MEAN_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.25</span><span class="o">*</span><span class="n">NCHANNELS</span><span class="p">,</span> <span class="mf">0.75</span><span class="o">*</span><span class="n">NCHANNELS</span><span class="p">]</span> <span class="c1"># channels</span>
+
+<span class="c1"># Indicate whether the data created here will be used as a training set</span>
+<span class="c1"># (a.k.a. decide to store the &quot;true&quot; answers or not at the end)</span>
+<span class="n">TRAINING_SET</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c1"># Specify the pickle file to store the results in</span>
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s1">&#39;training_data.pickle&#39;</span>
+</pre></div>
+</div>
+<p>With the above parameters specified, we can proceed with constructing a set of synthetic training data composed of Gaussian functions with known parameters (i.e., for which we know the &#8220;true&#8221; decompositon), sampled randomly from the parameter ranges specified above. The resulting data, including the channel values, spectral values and error estimates, are stored in the pickle file specified above with <code class="docutils literal"><span class="pre">FILENAME</span></code>. Because we want this to be a training set (<code class="docutils literal"><span class="pre">TRAINING_SET</span> <span class="pre">=</span> <span class="pre">True</span></code>), the true decomposition answers (in the form of amplitudes, FWHM and means for all components) are also stored in the output file. For example, to construct a synthetic dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Create training dataset with Gaussian profiles -cont-</span>
+
+<span class="c1"># Initialize</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+<span class="c1"># Begin populating data</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NSPECTRA</span><span class="p">):</span>
+    <span class="n">spectrum_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">NCHANNELS</span><span class="p">)</span> <span class="o">*</span> <span class="n">RMS</span>
+
+    <span class="n">amps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCOMPS</span><span class="p">):</span>
+        <span class="c1"># Select random values for components within specified ranges</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">AMP_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">AMP_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">FWHM_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">FWHM_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">MEAN_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">MEAN_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Add Gaussian profile with the above random parameters to the spectrum</span>
+        <span class="n">spectrum_i</span> <span class="o">+=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">m</span><span class="p">)(</span><span class="n">chan</span><span class="p">)</span>
+
+        <span class="c1"># Append the parameters to initialized lists for storing</span>
+        <span class="n">amps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">fwhms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+    <span class="c1"># Enter results into AGD dataset</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_list&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">spectrum_i</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_values&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;errors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;errors&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">errors</span><span class="p">]</span>
+
+    <span class="c1"># If training data, keep answers</span>
+    <span class="k">if</span> <span class="n">TRAINING_SET</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;amplitudes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;amplitudes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">amps</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;fwhms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fwhms&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">fwhms</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;means&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;means&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">means</span><span class="p">]</span>
+
+<span class="c1"># Dump synthetic data into specified filename</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="training-the-algorithm">
+<h2>Training the Algorithm<a class="headerlink" href="#training-the-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>Next, we will apply GaussPy to the real or synthetic training dataset and compare the results with the known underlying decompositon to determine the optimal value for the smoothing parameter <span class="math">\(\alpha\)</span>. We must set the following parameters</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">FILENAME</span></code>: the filename of the training dataset in GaussPy-friendly format.</li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal-to-noise threshold below which amplitude GaussPy will not fit components.</li>
+<li><code class="docutils literal"><span class="pre">alpha_initial</span></code>: initial choice for <span class="math">\(\log\alpha\)</span></li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Select the optimal value of alpha by training the AGD algorithm</span>
+
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Set necessary parameters</span>
+<span class="n">FILENAME</span> <span class="o">=</span> <span class="s1">&#39;training_data.pickle&#39;</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">alpha_initial</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Next, load the training dataset for analysis:</span>
+<span class="n">g</span><span class="o">.</span><span class="n">load_training_data</span><span class="p">(</span><span class="n">FILENAME</span><span class="p">)</span>
+
+<span class="c1"># Set GaussPy parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+
+<span class="c1"># Train AGD starting with initial guess for alpha</span>
+<span class="n">g</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">alpha1_initial</span> <span class="o">=</span> <span class="n">alpha_initial</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>GausspPy will decompose the training dataset with the initial choice of <span class="math">\(\alpha_{\rm initial}\)</span> and compare the results with the known underlying decomposition to compute the accuracy of the decomposition. The training process will then iteratively change the value of <span class="math">\(\alpha_{\rm initial}\)</span> and recompute the decomposition until the process converges.The accuracy of the decomposition associated with the converged value of <span class="math">\(\alpha\)</span> is a description of how well GaussPy can recover the true underlying decomposition.</p>
+<p>The above training dataset parameters were selected with the <a class="reference internal" href="#multiple-gaussians-tutorial"><span>Multiple Gaussians Tutorial</span></a> in mind. As we saw in that example, the choice of <span class="math">\(\alpha\)</span> has a significant effect on the GaussPy decomposition. In the training above, when we choose an initial value of <span class="math">\(\log\alpha_{\rm initial}=1.0\)</span> the training process converges to <span class="math">\(\log\alpha=1.58\)</span> with an accuracy of 68.4%, and required 33 iterations.</p>
+<p>To ensure that the training converges on the optimal value of <span class="math">\(\alpha\)</span> and not a local maximum, it is useful to re-run the training process for several choices of <span class="math">\(\alpha_{\rm initial}\)</span>. When we run the above example with an initial choice of <span class="math">\(\log\alpha_{initial}=3\)</span>, AGD converges to a value of <span class="math">\(\log\alpha=1.58\)</span> with an accuracy of 68.4% and required 33 iterations. However, this is a relatively simple example and therefore the converged value of alpha is not very sensitive to <span class="math">\(\alpha_{\rm initial}\)</span>. In the Prepping a Datacube chapter, we will discuss the effects of added complexity.</p>
+</div>
+<div class="section" id="running-gausspy-using-trained">
+<h2>Running GaussPy using Trained <span class="math">\(\alpha\)</span><a class="headerlink" href="#running-gausspy-using-trained" title="Permalink to this headline">¶</a></h2>
+<p>With a trained value of <span class="math">\(\alpha\)</span> in hand, we can proceed to decompose our
+target dataset with AGD. In this example, we will return to the example from the
+<a class="reference internal" href="#multiple-gaussians-tutorial"><span>Multiple Gaussians Tutorial</span></a> chapter. Following training, we select a
+value of <span class="math">\(\log\alpha=1.58\)</span>, which decomposed our training dataset with an
+accuracy of 68.4%. As in the <a class="reference internal" href="#simple-example-tutorial"><span>Simple Example Tutorial</span></a> and
+<a class="reference internal" href="#multiple-gaussians-tutorial"><span>Multiple Gaussians Tutorial</span></a>, the important parameters to specify are:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">alpha1</span></code>: our choice for the value of <span class="math">\(\log\alpha\)</span></li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal-to-noise ratio threshold below which amplitude
+GaussPy will not fit a component</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA</span></code>: the filename containing the dataset to-be-decomposed,
+constructed above (or any GaussPy-friendly dataset)</li>
+<li><code class="docutils literal"><span class="pre">FILENAME_DATA_DECOMP</span></code>: filename to store the decomposition results from
+GaussPy</li>
+</ol>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Decompose multiple Gaussian dataset using AGD with TRAINED alpha</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Specify necessary parameters</span>
+<span class="n">alpha1</span> <span class="o">=</span> <span class="mf">1.58</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+
+<span class="n">FILENAME_DATA</span> <span class="o">=</span> <span class="s1">&#39;multiple_gaussians.pickle&#39;</span>
+<span class="n">FILENAME_DATA_DECOMP</span> <span class="o">=</span> <span class="s1">&#39;multiple_gaussians_trained_decomposed.pickle&#39;</span>
+
+<span class="c1"># Load GaussPy</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Setting AGD parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;alpha1&#39;</span><span class="p">,</span> <span class="n">alpha1</span><span class="p">)</span>
+
+<span class="c1"># Run GaussPy</span>
+<span class="n">data_decomp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">batch_decomposition</span><span class="p">(</span><span class="n">FILENAME_DATA</span><span class="p">)</span>
+
+<span class="c1"># Save decomposition information</span>
+<span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data_decomp</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">FILENAME_DATA_DECOMP</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Fig. <a class="pageref" href="#multiple-gaussians-trained-decomposed"> 5</a> displays the result of
+fitting the &#8220;Multiple Gaussians&#8221; spectrum with a trained value of
+<span class="math">\(\log\alpha=1.58\)</span>.</p>
+<div class="align-center figure" id="multiple-gaussians-trained-decomposed">
+<a class="reference internal image-reference" href="_images/multiple_gaussians_trained_decomposed.png"><img alt="alternate text" src="_images/multiple_gaussians_trained_decomposed.png" style="width: 7in;" /></a>
+</div>
+</div>
+</div>
+<div class="section" id="two-phase-decompositon">
+<span id="two-phase-decomposition"></span><h1>Two-Phase Decompositon<a class="headerlink" href="#two-phase-decompositon" title="Permalink to this headline">¶</a></h1>
+<p>In the <a class="reference internal" href="#training-example"><span>Training AGD</span></a> chapter, we learned how to &#8220;train&#8221; AGD to select
+the optimal value of the smoothing parameter <span class="math">\(\alpha\)</span> using a training
+dataset with known underlying decomposition. This trained value is essentially
+tuned to find a particular type of Gaussian shape within the data. However, when
+more than one family or phase of Gaussian shapes is contained within a spectrum,
+one value of <span class="math">\(\alpha\)</span> is not enough to recover all important spectral
+information. For example, in radio astronomical observations of absorption by
+neutral hydrogen at 21 cm, we find narrow and strong lines in addition to wide,
+shallow lines indicative of two different populations of material, namely the
+cold and warm neutral media.</p>
+<p>For GaussPy to be sensitive to two types of Gaussian functions contained within
+a dataset, we must use the &#8220;two-phase&#8221; version of AGD. The two-phase
+decomposition makes use of two values of the smoothing parameter <span class="math">\(\alpha\)</span>,
+one for each &#8220;phase&#8221; contained within the dataset.</p>
+<div class="section" id="training-for-two-phases-and">
+<h2>Training for Two Phases: <span class="math">\(\alpha_1\)</span> and <span class="math">\(\alpha_2\)</span><a class="headerlink" href="#training-for-two-phases-and" title="Permalink to this headline">¶</a></h2>
+<p>Using the example from the <a class="reference internal" href="#multiple-gaussians-tutorial"><span>Multiple Gaussians Tutorial</span></a>, we will train AGD
+to allow for two different values of <span class="math">\(\alpha\)</span>. This gives GaussPy enough
+flexibilty to use appropriate values of <span class="math">\(\alpha\)</span> to fit both narrow and
+wide features simultaneously. We will use the same training dataset constructed
+in <a class="reference internal" href="#training-example"><span>Training AGD</span></a>. We must set the following parameters:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">FILENAME_TRAIN</span></code>: the filename of the training dataset in GaussPy-friendly
+format</li>
+<li><code class="docutils literal"><span class="pre">snr_thresh</span></code>: the signal-to-noise threshold below which amplitude GaussPy
+will not fit components</li>
+<li><code class="docutils literal"><span class="pre">alpha1_initial,</span> <span class="pre">alpha2_initial`</span></code>: initial choices for <span class="math">\(\log\alpha_1\)</span> and
+<span class="math">\(\log\alpha_2\)</span></li>
+</ol>
+<p>The training will be the same as in <a class="reference internal" href="#training-example"><span>Training AGD</span></a>, however we will set
+the GaussPy parameter <cite>phase</cite> equal to <cite>two</cite> instead of <cite>one</cite> to indicate that
+we would like to solve for two different values of <span class="math">\(\alpha\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Select the optimal value of alpha by training the AGD algorithm</span>
+
+<span class="kn">import</span> <span class="nn">gausspy.gp</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Set necessary parameters</span>
+<span class="n">FILENAME_TRAIN</span> <span class="o">=</span> <span class="s1">&#39;training_data.pickle&#39;</span>
+<span class="n">snr_thresh</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="n">alpha1_initial</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">alpha2_initial</span> <span class="o">=</span> <span class="mf">2.</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GaussianDecomposer</span><span class="p">()</span>
+
+<span class="c1"># Next, load the training dataset for analysis:</span>
+<span class="n">g</span><span class="o">.</span><span class="n">load_training_data</span><span class="p">(</span><span class="n">FILENAME_TRAIN</span><span class="p">)</span>
+
+<span class="c1"># Set GaussPy parameters</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+<span class="n">g</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;SNR_thresh&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">snr_thresh</span><span class="p">,</span> <span class="n">snr_thresh</span><span class="p">])</span>
+
+<span class="c1"># Train AGD starting with initial guess for alpha</span>
+<span class="n">g</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">alpha1_initial</span> <span class="o">=</span> <span class="n">alpha1_initial</span><span class="p">,</span> <span class="n">alpha2_initial</span> <span class="o">=</span> <span class="n">alpha2_initial</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Following training, GaussPy converges on values of <span class="math">\(\log\alpha_1 = 0.39\)</span> and
+<span class="math">\(\log\alpha_2 = 2.32\)</span> in 39 iterations, with an accuracy of 76.0%. Clearly,
+the two-phase decomposition improves the accuracy of the decomposition, of
+course at the expense of introducing a second free parameter in the
+decomposition. In general, for datasets containing more than one type of
+component (corresponding to different physical sources, for example), two-phase
+decomposition will maximize the decompositon accuracy.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Simple Example Tutorial</a><ul>
+<li><a class="reference internal" href="#constructing-a-gausspy-friendly-dataset">Constructing a GaussPy-Friendly Dataset</a></li>
+<li><a class="reference internal" href="#running-gausspy">Running GaussPy</a></li>
+<li><a class="reference internal" href="#plot-decomposition-results">Plot Decomposition Results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multiple-gaussians-tutorial">Multiple Gaussians Tutorial</a><ul>
+<li><a class="reference internal" href="#id3">Constructing a GaussPy-Friendly Dataset</a></li>
+<li><a class="reference internal" href="#id4">Running GaussPy</a></li>
+<li><a class="reference internal" href="#id5">Plot Decomposition Results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#training-agd">Training AGD</a><ul>
+<li><a class="reference internal" href="#creating-a-synthetic-training-dataset">Creating a Synthetic Training Dataset</a></li>
+<li><a class="reference internal" href="#training-the-algorithm">Training the Algorithm</a></li>
+<li><a class="reference internal" href="#running-gausspy-using-trained">Running GaussPy using Trained <span class="math">\(\alpha\)</span></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#two-phase-decompositon">Two-Phase Decompositon</a><ul>
+<li><a class="reference internal" href="#training-for-two-phases-and">Training for Two Phases: <span class="math">\(\alpha_1\)</span> and <span class="math">\(\alpha_2\)</span></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="install.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dataprep.html"
+                        title="next chapter">Prepping a Datacube</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorial.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dataprep.html" title="Prepping a Datacube"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GaussPy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Robert Lindner, Carlos Vera-Ciro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>
