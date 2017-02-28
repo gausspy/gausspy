@@ -9,7 +9,7 @@ through the process.
  
 ## <a name="question"></a> Got a Question or Problem?
 
-If you have questions about how to use Roxy, please direct these to the
+If you have questions about how to use GaussPy, please direct these to the
 GaussPy Mailing List (gausspy.software@gmail.com).
 
 ## <a name="issue"></a> Found an Issue?
