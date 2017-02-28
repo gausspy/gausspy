@@ -2,6 +2,7 @@
 A python tool for implementing the Autonomous Gaussian Decomposition algorithm.
 
 Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
+
 [Lindner et al. 2015](https://arxiv.org/abs/1409.2840)
 
 # Installation
