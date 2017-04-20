@@ -18,7 +18,7 @@ class GaussianDecomposer(object):
             temp = pickle.load(open(filename))
             self.p = temp.p
         else:            
-            self.p = {'alpha1':None, 'alpha2':None, 'training_results':None,
+            self.p = {'alpha1':None, 'alpha2':None, 'alpha_em':None, 'alpha1_em':None, 'alpha2_em':None, 'scale':None, 'training_results':None,
                         'phase':'one', 'SNR2_thresh':5., 'SNR_thresh':5., 'deblend':True,
                         'mode':'c', 'BLFrac':0.1, 'verbose':False, 'plot':False, 'perform_final_fit':True}
 
@@ -90,7 +90,41 @@ class GaussianDecomposer(object):
         return results
 
 
+    def decompose_double(self, xdata, ydata, xdata_em, ydata_em, edata, edata_em):
+        """ Decompose an absorption and emission pair simultaneously """
         
+        if ((self.p['phase'] == 'one') and (not self.p['alpha1'])):
+            print 'phase = one, and alpha1 is unset'
+            return
+            
+        if  (self.p['phase'] == 'two') and ((not self.p['alpha1']) or (not self.p['alpha2'])):
+            print 'phase = two, and either alpha1 or alpha2 is unset'
+            return
+
+        if self.p['mode'] != 'conv':
+            a1 = 10**self.p['alpha1']
+            a2 = 10**self.p['alpha2'] if self.p['phase']=='two' else None
+            aem = self.p['alpha_em']
+        else:
+            a1 = self.p['alpha1']
+            a2 = self.p['alpha2'] if self.p['phase']=='two' else None
+            aem = self.p['alpha_em']
+
+        status, results = AGD_decomposer.AGD_double(xdata, ydata, xdata_em, ydata_em, edata, edata_em, scale = self.p['scale'],
+                                             alpha1 = a1, alpha2 = a2, alpha_em = aem,
+                                             phase = self.p['phase'], mode = self.p['mode'], 
+                                             verbose = self.p['verbose'], SNR_thresh = self.p['SNR_thresh'], 
+                                             BLFrac = self.p['BLFrac'], SNR2_thresh = self.p['SNR2_thresh'], 
+                                             deblend = self.p['deblend'], perform_final_fit = self.p['perform_final_fit'], 
+                                             plot = self.p['plot']) 
+        return results
+
+    def decompose_pair(self, xdata2, ydata2, edata2, amps1, fwhms1, means1, amps2, fwhms2, means2):
+        """ Decompose an absorption and emission pair simultaneously """
+
+        status, results = AGD_decomposer.pair(xdata2, ydata2, edata2, amps1, fwhms1, means1, amps2, fwhms2, means2)
+        return results
+
     def status(self):
         """ Return current values of parameters """        
         print 'Current Parameters:'
@@ -132,13 +166,16 @@ class GaussianDecomposer(object):
         
         # Dump information to hard drive to allow multiprocessing
         pickle.dump([self, science_data_path, ilist], open('batchdecomp_temp.pickle','w'))
-        import batch_decomposition
+
+	import batch_decomposition
+
         result_list = batch_decomposition.func()
         print 'SUCCESS'
 
         new_keys = ['index_fit', 'amplitudes_fit', 'fwhms_fit', 'means_fit',
                     'index_initial', 'amplitudes_initial', 'fwhms_initial', 'means_initial',
-                    'amplitudes_fit_err', 'fwhms_fit_err', 'means_fit_err', 'best_fit_rchi2']
+                    'amplitudes_fit_err', 'fwhms_fit_err', 'means_fit_err', 'best_fit_rchi2', 'amplitudes_fit_em',
+		    'fwhms_fit_em', 'means_fit_em', 'means_fit_err_em', 'amplitudes_fit_err_em', 'fwhms_fit_err_em', 'fit_labels']
 
         output_data = dict((key,[]) for key in new_keys)
 
@@ -177,11 +214,24 @@ class GaussianDecomposer(object):
             output_data['fwhms_fit_err'].append(fwhms_err)
             output_data['amplitudes_fit_err'].append(amps_err)
 
+	    ncomps_abs = ncomps_initial
+	    # save emission fit parameters
+	    if self.p['alpha_em'] is not None:
+		ncomps = len(result['best_fit_parameters_em'])/3 
+		amps = result['best_fit_parameters_em'][0:ncomps] if ncomps > 0 else []
+		fwhms =result['best_fit_parameters_em'][ncomps:2*ncomps] if ncomps > 0 else []
+		offsets =result['best_fit_parameters_em'][2*ncomps:3*ncomps] if ncomps > 0 else []
+		fit_labels = result['fit_labels'] if ncomps > 0 else []
+
+		output_data['amplitudes_fit_em'].append(amps)
+		output_data['fwhms_fit_em'].append(fwhms)
+		output_data['means_fit_em'].append(offsets)
+		output_data['fit_labels'].append(fit_labels)
+
         print '100 finished.%'
         return output_data
 
 
-            
         
     def plot_components(self, data, index, xlabel='x', ylabel='y', xlim=None, ylim=None, guesses=False, plot_true=False):
         # Extract info from data (must contain 'fit' categories)

@@ -10,7 +10,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 #from scipy.optimize import leastsq, minimize 
 from lmfit import minimize as lmfit_minimize
-from lmfit import Parameters
+from lmfit import Parameters, Minimizer, Parameters, Parameter, report_fit
 
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
@@ -48,6 +48,52 @@ def paramvec_to_lmfit(paramvec):
             params.add('p'+str(i+1),   value=paramvec[i])
 
     return params
+
+def paramvec_em_to_lmfit(paramvec):
+    """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
+    ncomps = len(paramvec)/ 2
+    params = Parameters()
+
+    for i in range(ncomps):
+	params.add('p'+str(i+1), value=paramvec[i], min=10.0, max = 21.86 * np.float(paramvec[i+ncomps])**2)
+
+    return params
+
+
+def paramvec_p3_to_lmfit(paramvec):
+    """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
+    ncomps = len(paramvec)/ 5
+    params = Parameters()
+    labels = np.concatenate([paramvec[3*ncomps:4*ncomps],paramvec[3*ncomps:4*ncomps],paramvec[3*ncomps:4*ncomps]])
+    tau = paramvec[4*ncomps:]
+
+    val = 0.1
+    for i in range(len(paramvec)-ncomps*2):
+	if i < ncomps:
+	    if labels[i] == 1:
+		min_tb = 10.0*(1.-np.exp(-1.*tau[i]))
+		max_tb = 21.86 * np.float(paramvec[i+ncomps])**2 * (1.-np.exp(-1.*tau[i]))
+		params.add('p'+str(i+1), value=paramvec[i], min=min_tb, max=max_tb)
+	    else:
+		params.add('p'+str(i+1), value=paramvec[i], min=0.0)
+	if i >= ncomps and i < 2*ncomps:
+	    if labels[i] == 1:
+		params.add('p'+str(i+1), value=paramvec[i], min=paramvec[i]-val*paramvec[i],  max=paramvec[i]+val*paramvec[i])
+	    else:
+		params.add('p'+str(i+1), value=paramvec[i], min=0.0)
+	if i >= 2*ncomps:
+	    if labels[i] == 1:
+		params.add('p'+str(i+1), value=paramvec[i], min=paramvec[i]-val*paramvec[i],  max=paramvec[i]+val*paramvec[i])
+	    else:
+		params.add('p'+str(i+1), value=paramvec[i])
+    return params
+
+def model_emis(params, x, data, fit_vals): 
+    params = vals_vec_from_lmfit(params)
+
+    resids = func_em(x, fit_vals, *params).ravel() - data.ravel()
+    return resids
+
 
 
 def create_fitmask(size, offsets_i, di):
@@ -90,6 +136,38 @@ def func(x, *args):
     return yout
 
 
+def func_em(x, fit_vals, *args):
+    """ Return multi-component Gaussian model F(x).
+
+    Parameter vector kargs = [tspin1, ..., tspinN],
+    and therefore has len(args) = N_components.
+    """
+    ncomps = len(args)
+    yout = x * 0.
+    args = np.array(args, dtype=float)
+    fit_vals = np.array(fit_vals, dtype=float)
+
+    for i in range(ncomps):
+        yout = yout + args[i] * (1. - np.exp(-1. * gaussian(fit_vals[i], fit_vals[i+ncomps], fit_vals[i+2*ncomps])(x)))
+    return yout
+
+
+def func_p3(x, fit_vals, *args):
+    """ Return multi-component Gaussian model F(x).
+
+    Parameter vector kargs = [amp1, ..., ampN, width1, ..., widthN, mean1, ..., meanN],
+    and therefore has len(args) = 3 x N_components.
+    """
+    ncomps = len(args) / 3 + len(fit_vals) / 3
+    yout = x * 0.
+    args = np.array(args, dtype=float)
+    fit_vals = np.array(fit_vals, dtype=float)
+
+    for i in range(ncomps):
+        yout = yout + args[i] * (1. - np.exp(-1. * gaussian(fit_vals[i], fit_vals[i+ncomps], fit_vals[i+2*ncomps])(x)))
+    return yout
+
+
 def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c',
                  verbose = False, SNR_thresh = 5.0, BLFrac = 0.1, SNR2_thresh = 5.0, 
                  deblend = True):
@@ -129,7 +207,6 @@ def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c
     dv = np.abs(vel[1]-vel[0])    
     fvel = interp1d(np.arange(len(vel)),vel) # Converts from index -> x domain
     data_size = len(data)
-
 
     # Take regularized derivatives
     t0 = time.time()
@@ -198,7 +275,6 @@ def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c
     mask4 = np.array(u2.copy()[1:] < thresh2, dtype='int') # Negative second derivative
 
 
-
     # Find optima of second derivative
     # --------------------------------
     zeros = np.abs(np.diff(np.sign(u3)))
@@ -221,7 +297,7 @@ def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c
 
 #        say('AGD2.initialGuess: No components found for alpha={0}! Returning ([] [] [] [] [])'.format(alpha))
 #        return [], [], [], u2
-        
+       
 
     
     # Find points of inflection
@@ -254,6 +330,374 @@ def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c
     return odict
 
 
+
+
+
+def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alpha1 = None, alpha2 = None, alpha_em = None, 
+        plot = False, mode ='c', verbose = False,
+        SNR_thresh = 5.0, BLFrac = 0.1, SNR2_thresh=5.0, deblend=True,  
+        perform_final_fit = True, phase='one'):
+
+
+    """ Autonomous Gaussian Decomposition
+    """
+
+    if type(SNR2_thresh) != type([]): SNR2_thresh = [SNR2_thresh, SNR2_thresh]
+    if type(SNR_thresh) != type([]): SNR_thresh = [SNR_thresh, SNR_thresh]
+
+    say('\n  --> AGD() \n',verbose)
+
+    if (not alpha2) and (phase=='two'):
+        print 'alpha2 value required'
+        return
+
+    dv = np.abs(vel[1] - vel[0])
+    v_to_i = interp1d(vel, np.arange(len(vel)))
+
+    #--------------------------------------#
+    # Find phase-one guesses               #
+    #--------------------------------------#
+
+    agd1 = initialGuess(vel, data, errors = None, alpha = alpha1, 
+                                              plot = plot, mode = mode, verbose = verbose, 
+                                              SNR_thresh = SNR_thresh[0], 
+                                              BLFrac = BLFrac, 
+                                              SNR2_thresh = SNR2_thresh[0], 
+                                              deblend = deblend)
+
+    amps_g1, widths_g1, offsets_g1, u2 = agd1['amps'], agd1['FWHMs'], agd1['means'], agd1['u2']
+    params_g1 = np.append(np.append(amps_g1, widths_g1), offsets_g1)
+    ncomps_g1 = len(params_g1) / 3
+    ncomps_g2 = 0 # Default
+    ncomps_f1 = 0 # Default
+
+    # ----------------------------#
+    # Find phase-two guesses #
+    # ----------------------------#
+    if phase == 'two':
+        say('Beginning phase-two AGD... ', verbose)
+        ncomps_g2 = 0.
+
+       
+        # ----------------------------------------------------------#
+        # Produce the residual signal                               #
+        #  -- Either the original data, or intermediate subtraction #
+        # ----------------------------------------------------------#
+        if ncomps_g1 == 0:
+            say('Phase 2 with no narrow comps -> No intermediate subtraction... ', verbose)
+            residuals = data
+        else: 
+            # "Else" Narrow components were found, and Phase == 2, so perform intermediate subtraction...
+
+            # The "fitmask" is a collection of windows around the a list of phase-one components        
+            fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(offsets_g1), widths_g1 / dv / 2.355 * 0.9)
+            notfitmask  = 1 - fitmask
+            notfitmaskw  = np.logical_not(fitmaskw)
+
+            # Error function for intermediate optimization
+            def objectiveD2_leastsq(paramslm):
+                params = vals_vec_from_lmfit(paramslm)	
+                model0 = func(vel, *params)
+                model2 = np.diff(np.diff(model0.ravel()))/dv/dv
+                resids1 = fitmask[1:-1] * (model2 - u2[1:-1]) / errors[1:-1]
+                resids2 = notfitmask * (model0 - data)  / errors /10.
+                return np.append(resids1, resids2)
+
+
+            # Perform the intermediate fit using LMFIT
+            t0 = time.time()
+            say('Running LMFIT on initial narrow components...', verbose)
+            lmfit_params = paramvec_to_lmfit(params_g1)
+	    #print params_g1
+            result = lmfit_minimize(objectiveD2_leastsq, lmfit_params, method='leastsq')
+            params_f1 = vals_vec_from_lmfit(result.params)
+            ncomps_f1 = len(params_f1) / 3
+            # Make "FWHMS" positive
+            params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0] = -1 * params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0]
+
+            del lmfit_params
+            say('LMFIT fit took {0} seconds.'.format(time.time()-t0))
+
+
+            if result.success:
+                # Compute intermediate residuals
+                # Median filter on 2x effective scale to remove poor subtractions of strong components
+                intermediate_model = func(vel, *params_f1).ravel() # Explicit final (narrow) model
+                median_window = 2. * 10**((np.log10(alpha1) + 2.187) / 3.859)
+                residuals = median_filter(data - intermediate_model, np.int(median_window))
+            else:
+                residuals = data
+            # Finished producing residual signal # ---------------------------
+  
+
+        # Search for phase-two guesses
+        agd2 = initialGuess(vel, residuals, errors = None, 
+                                                 alpha = alpha2, mode = mode, verbose = verbose, 
+                                                 SNR_thresh = SNR_thresh[1], 
+                                                 BLFrac = BLFrac, 
+                                                 SNR2_thresh = SNR2_thresh[1], # June 9 2014, change 
+                                                 deblend=deblend, plot=plot)   
+        ncomps_g2  = agd2['N_components']
+        if  ncomps_g2 > 0:
+            params_g2 = np.concatenate([agd2['amps'],agd2['FWHMs'], agd2['means']])
+        else: 
+            params_g2 = []
+        u22 = agd2['u2']
+
+        # END PHASE 2 <<<
+
+
+
+    # Check for phase two components, make final guess list
+    # ------------------------------------------------------
+    if phase=='two' and (ncomps_g2 > 0):
+        amps_gf = np.append(params_g1[0:ncomps_g1], params_g2[0:ncomps_g2])
+        widths_gf = np.append(params_g1[ncomps_g1:2*ncomps_g1], params_g2[ncomps_g2:2*ncomps_g2])
+        offsets_gf = np.append(params_g1[2*ncomps_g1:3*ncomps_g1], params_g2[2*ncomps_g2:3*ncomps_g2])
+        params_gf = np.concatenate([amps_gf, widths_gf, offsets_gf])
+        ncomps_gf = len(params_gf) / 3
+    else:
+        params_gf = params_g1
+        ncomps_gf = len(params_gf) / 3
+
+
+    # Sort final guess list by amplitude
+    # ----------------------------------
+    say('N final parameter guesses: ' + str(ncomps_gf))
+    amps_temp = params_gf[0:ncomps_gf]
+    widths_temp = params_gf[ncomps_gf:2*ncomps_gf]
+    offsets_temp = params_gf[2*ncomps_gf:3*ncomps_gf]
+    w_sort_amp = np.argsort(amps_temp)[::-1]
+    params_gf = np.concatenate([amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp]])
+    params_emfit = np.concatenate([np.ones(ncomps_gf)*30., widths_temp])
+
+    if (perform_final_fit == True) and (ncomps_gf > 0):
+        say('\n\n  --> Final Fitting... \n',verbose)
+
+
+        # Objective functions for final fit
+        def objective_leastsq(paramslm):
+            params = vals_vec_from_lmfit(paramslm)
+            resids = (func(vel, *params).ravel() - data.ravel()) / errors
+            return resids
+
+        # Final fit using unconstrained parameters
+        t0 = time.time()
+        lmfit_params = paramvec_to_lmfit(params_gf)
+        result2 = lmfit_minimize(objective_leastsq, lmfit_params, method='leastsq')       
+        params_fit = vals_vec_from_lmfit(result2.params)
+        params_errs = errs_vec_from_lmfit(result2.params)
+        ncomps_fit = len(params_fit)/3
+        
+        del lmfit_params
+        say('Final fit took {0} seconds.'.format(time.time()-t0), verbose)
+
+        # Make "FWHMS" positive
+        params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0] = -1 * params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0]
+      
+ 
+        best_fit_final = func(vel, *params_fit).ravel()
+        rchi2 = np.sum( (data - best_fit_final)**2 / errors**2) / len(data)
+
+
+        # Check if any amplitudes are identically zero, if so, remove them.
+        if np.any(params_fit[0:ncomps_gf] == 0.0):
+            amps_fit = params_fit[0:ncomps_gf]        
+            fwhms_fit = params_fit[ncomps_gf:2*ncomps_gf]        
+            offsets_fit = params_fit[2*ncomps_gf:3*ncomps_gf]
+            w_keep = amps_fit > 0.    
+            params_fit = np.concatenate([amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]])
+            ncomps_fit = len(params_fit)/3
+
+	# Organize parameters for subsequent emission fit      
+	fwhms_fit = params_fit[ncomps_gf:2*ncomps_gf]
+	params_emfit = np.concatenate([np.ones(ncomps_gf)*30., fwhms_fit])
+
+    # Construct output dictionary (odict)     
+    # -----------------------------------
+    odict = {}
+    odict['initial_parameters'] = params_gf 
+    odict['N_components'] = ncomps_gf
+
+    if (perform_final_fit == True) and (ncomps_gf > 0): 
+        odict['best_fit_parameters'] = params_fit
+        odict['best_fit_errors'] = params_errs
+        odict['rchi2'] = rchi2
+    else:
+	params_fit = params_gf
+
+    #------ ADDING SUBSEQUENT FIT FOR EMISSION-ONLY COMPONENTS ---------
+    # -- Find initial guesses for fit of absorption components to emission
+    # -- Based on simple least-squares fit of absorption lines to emission
+    # -- **Holding width and mean velocity constant for absorption lines
+    # -- **Fitting only for amplitude (i.e., spin temperature)
+    # -- **Amplitude allowed to be between Ts = 10 K and Tkmax = 21.86 * dv**2 for each component
+
+    vel = vel_em
+    data = data_em
+    errors = errors_em
+    dv = np.abs(vel[1] - vel[0])
+    v_to_i = interp1d(vel, np.arange(len(vel)))
+
+    # Perform the intermediate fit using LMFIT
+    lmfit_params = paramvec_em_to_lmfit(params_emfit)
+    model = Minimizer(model_emis, lmfit_params, fcn_args = (vel, data, params_fit))
+    result = model.minimize()
+    u3 = result.residual * (-1.)
+
+    # Fitted spin temperatures 
+    params_em1 = vals_vec_from_lmfit(result.params)
+    del lmfit_params
+
+    # Given fitted spin temperatures, construct parameters for "third phase" AGD fit
+    tau = np.array(params_fit[0:ncomps_gf], dtype=float)
+    amps = (1. - np.exp( -1. * np.array(tau, dtype=float))) * params_em1
+    fwhms = np.array(params_fit[ncomps_gf:2*ncomps_gf], dtype=float) 
+    offsets = np.array(params_fit[2*ncomps_gf:3*ncomps_gf], dtype=float)
+
+    # Check if any offsets are outside of the velocity range, and if so, remove them:
+    if np.any(np.abs(offsets) > np.max(vel)):
+	w_keep = offsets < np.max(vel)
+	amps = amps[w_keep]
+	fwhms = fwhms[w_keep]
+	tau = tau[w_keep]
+	offsets = offsets[w_keep]
+
+    params_em = np.concatenate([amps, fwhms, offsets])
+    ncomps_em = len(params_em) / 3
+
+    # Initially zero "added" components
+    ncomps_g3 = 0.
+
+    # The "fitmask" is a collection of windows around the a list of phase-one components     
+    fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(offsets), fwhms / dv / 2.355 * 0.9)
+    notfitmask  = 1 - fitmask
+    notfitmaskw  = np.logical_not(fitmaskw)
+
+    #   del lmfit_params
+    if result.success:
+	# Compute intermediate residuals
+	# Median filter on 2 x effective scale to remove poor subtractions of strong components
+	intermediate_model = func(vel, *params_em).ravel() # Explicit final (narrow) model
+	median_window = 2. * 10**((np.log10(alpha_em) + 2.187) / 3.859)
+	residuals = median_filter(data - intermediate_model, np.int(median_window))
+    else:
+	residuals = data
+    # Finished producing residual emission signal # ---------------------------
+
+
+    # Search for phase-three guesses
+    agd3 = initialGuess(vel, residuals, errors = None, 
+				alpha = alpha_em, mode = mode, verbose = verbose, 
+				SNR_thresh = SNR_thresh[0], 
+				BLFrac = BLFrac, 
+				SNR2_thresh = SNR_thresh[0],  
+				deblend=deblend, plot=plot)   
+
+    ncomps_g3  = agd3['N_components']
+    if  ncomps_g3 > 0:
+	params_g3 = np.concatenate([agd3['amps'],agd3['FWHMs'], agd3['means']])
+	#print params_g3
+    else: 
+	params_g3 = []
+    u22 = agd3['u2']
+
+    # Check for phase three components, make final guess list
+    # ------------------------------------------------------
+    if ncomps_g3 > 0:
+	# absorption widths:
+	abs_offsets = params_em[2*ncomps_em:3*ncomps_em]
+	em_widths = params_g3[ncomps_g3:2*ncomps_g3]
+	em_amps = params_g3[0:ncomps_g3]
+	em_offsets = params_g3[2*ncomps_g3:3*ncomps_g3]
+
+	ind = np.arange(len(em_offsets))
+	indices = []
+
+	for i, offset in enumerate(em_offsets):
+	    if np.any(abs_offsets-offset) < 1.0:
+		print 'drop'
+		continue
+	    else:
+		indices.append(i)
+	
+	em_offsets = em_offsets[indices]
+	em_amps = em_amps[indices]
+	em_widths = em_widths[indices]
+	ncomps_g3 = len(em_amps)
+
+        amps_emf = np.append(params_em[0:ncomps_em], em_amps)
+        widths_emf = np.append(params_em[ncomps_em:2*ncomps_em], em_widths)
+        offsets_emf = np.append(params_em[2*ncomps_em:3*ncomps_em],em_offsets)
+	tau_emf = np.append(tau, np.zeros(ncomps_g3))
+	labels_emf = np.append(np.ones(ncomps_em), np.zeros(ncomps_g3))
+        params_emf = np.concatenate([amps_emf, widths_emf, offsets_emf])
+
+    if ncomps_g3 == 0:
+        params_emf = params_em
+	tau_emf = tau
+	labels_emf = np.ones(ncomps_em)
+
+    ncomps_emf = len(params_emf)/3
+
+    # Sort final guess list by amplitude
+    # ----------------------------------
+    say('N final parameter guesses: ' + str(ncomps_emf))
+    amps_temp = params_emf[0:ncomps_emf]
+    widths_temp = params_emf[ncomps_emf:2*ncomps_emf]
+    offsets_temp = params_emf[2*ncomps_emf:3*ncomps_emf]
+    w_sort_amp = np.argsort(amps_temp)[::-1]
+    params_full = np.concatenate([amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp],labels_emf[w_sort_amp],tau_emf[w_sort_amp]])
+    labels_emf = labels_emf[w_sort_amp]
+
+
+    #del params_fit
+    if ncomps_emf > 0:
+        say('\n\n  --> Final Fitting... \n',verbose)
+
+        # Objective functions for final fit
+        def objective_leastsq(paramslm):
+            params = vals_vec_from_lmfit(paramslm)
+            resids = (func(vel, *params).ravel() - data.ravel()) / errors
+            return resids
+
+        # Final fit using unconstrained parameters
+        t0 = time.time()
+        lmfit_params = paramvec_p3_to_lmfit(params_full)
+        result3 = lmfit_minimize(objective_leastsq, lmfit_params, method='leastsq')       
+        params_fit = vals_vec_from_lmfit(result3.params)
+        params_errs = errs_vec_from_lmfit(result3.params)
+        ncomps_fit = len(params_fit)/3
+
+        del lmfit_params
+        say('Final fit took {0} seconds.'.format(time.time()-t0), verbose)
+
+        # Make "FWHMS" positive
+        params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0] = -1 * params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0]
+      
+        best_fit_final = func(vel, *params_fit).ravel()
+        rchi2 = np.sum( (data - best_fit_final)**2 / errors**2) / len(data)
+
+        # Check if any amplitudes are identically zero, if so, remove them.
+        if np.any(params_fit[0:ncomps_emf] == 0.):
+            amps_fit = params_fit[0:ncomps_emf]        
+            fwhms_fit = params_fit[ncomps_emf:2*ncomps_emf]        
+            offsets_fit = params_fit[2*ncomps_emf:3*ncomps_emf]
+            w_keep = amps_fit > 0.    
+            params_fit = np.concatenate([amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]])
+	    labels_emf = labels_emf[w_keep]
+            ncomps_fit = len(params_fit)/3
+    else:
+	ncomps_fit = ncomps_emf
+	params_fit = params_emf
+
+    print 'ncomps before and after:', ncomps_gf, ncomps_fit
+
+    odict['best_fit_parameters_em'] = params_fit
+    #odict['best_fit_errors_em'] = params_errs
+    odict['fit_labels'] = labels_emf
+
+    return (1, odict)
 
 
 def AGD(vel, data, errors, alpha1 = None, alpha2 = None,
@@ -312,7 +756,9 @@ def AGD(vel, data, errors, alpha1 = None, alpha2 = None,
         else: 
             # "Else" Narrow components were found, and Phase == 2, so perform intermediate subtraction...
 
-            # The "fitmask" is a collection of windows around the a list of phase-one components        
+            # The "fitmask" is a collection of windows around the a list of phase-one components   
+	    print v_to_i
+	    print offsets_g1     
             fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(offsets_g1), widths_g1 / dv / 2.355 * 0.9)
             notfitmask  = 1 - fitmask
             notfitmaskw  = np.logical_not(fitmaskw)

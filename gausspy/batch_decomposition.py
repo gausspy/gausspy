@@ -27,6 +27,17 @@ def decompose_one(i):
                                           agd_data['errors'][i])
     return result
 
+def decompose_double(i):
+    print '   ---->  ', i , ' double'
+    result = GaussianDecomposer.decompose_double(agd_object, 
+                                          agd_data['x_values'][i], 
+                                          agd_data['data_list'][i],
+					  agd_data['x_values_em'][i],
+				  	  agd_data['data_list_em'][i], 
+                                          agd_data['errors'][i],
+                                          agd_data['errors_em'][i])
+
+    return result
 
 
 def func():
@@ -36,7 +47,10 @@ def func():
     p = multiprocessing.Pool(ncpus, init_worker)
     if agd_object.p['verbose']: print 'N CPUs: ', ncpus
     try:
-        results_list = p.map(decompose_one, ilist)
+	if agd_object.p['alpha_em'] is not None:
+	    results_list = p.map(decompose_double, ilist)
+	else:
+	    results_list = p.map(decompose_one, ilist)
 
     except KeyboardInterrupt:
         print "KeyboardInterrupt... quitting."
