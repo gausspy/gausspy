@@ -569,7 +569,7 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     # Initially zero "added" components
     ncomps_g3 = 0.
 
-    # The "fitmask" is a collection of windows around the a list of phase-one components     
+    # The "fitmask" is a collection of windows around the a list of two-phase absorption components     
     fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(offsets), fwhms / dv / 2.355 * 0.9)
     notfitmask  = 1 - fitmask
     notfitmaskw  = np.logical_not(fitmaskw)
@@ -586,7 +586,7 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     # Finished producing residual emission signal # ---------------------------
 
 
-    # Search for phase-three guesses
+    # Search for phase-three guesses in residual emission spectrum
     agd3 = initialGuess(vel, residuals, errors = None, 
 				alpha = alpha_em, mode = mode, verbose = verbose, 
 				SNR_thresh = SNR_thresh[0], 
@@ -597,7 +597,6 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     ncomps_g3  = agd3['N_components']
     if  ncomps_g3 > 0:
 	params_g3 = np.concatenate([agd3['amps'],agd3['FWHMs'], agd3['means']])
-	#print params_g3
     else: 
 	params_g3 = []
     u22 = agd3['u2']
@@ -614,8 +613,9 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
 	ind = np.arange(len(em_offsets))
 	indices = []
 
+	# Check if any emission components are within 1 channel of an absorption component
 	for i, offset in enumerate(em_offsets):
-	    if np.any(abs_offsets-offset) < 1.0:
+	    if np.any(abs_offsets-offset) < dv:
 		print 'drop'
 		continue
 	    else:
@@ -650,8 +650,6 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     params_full = np.concatenate([amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp],labels_emf[w_sort_amp],tau_emf[w_sort_amp]])
     labels_emf = labels_emf[w_sort_amp]
 
-
-    #del params_fit
     if ncomps_emf > 0:
         say('\n\n  --> Final Fitting... \n',verbose)
 
@@ -694,7 +692,7 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     print 'ncomps before and after:', ncomps_gf, ncomps_fit
 
     odict['best_fit_parameters_em'] = params_fit
-    #odict['best_fit_errors_em'] = params_errs
+    odict['best_fit_errors_em'] = params_errs
     odict['fit_labels'] = labels_emf
 
     return (1, odict)
