@@ -499,7 +499,6 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
         best_fit_final = func(vel, *params_fit).ravel()
         rchi2 = np.sum( (data - best_fit_final)**2 / errors**2) / len(data)
 
-
         # Check if any amplitudes are identically zero, if so, remove them.
         if np.any(params_fit[0:ncomps_gf] == 0.0):
             amps_fit = params_fit[0:ncomps_gf]        
@@ -689,11 +688,12 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
 	ncomps_fit = ncomps_emf
 	params_fit = params_emf
 
-    print 'ncomps before and after:', ncomps_gf, ncomps_fit
+    #print 'ncomps before and after:', ncomps_gf, ncomps_fit
 
-    odict['best_fit_parameters_em'] = params_fit
-    odict['best_fit_errors_em'] = params_errs
-    odict['fit_labels'] = labels_emf
+    if ncomps_fit > ncomps_gf:
+	odict['best_fit_parameters_em'] = params_fit
+	odict['best_fit_errors_em'] = params_errs
+	odict['fit_labels'] = labels_emf
 
     return (1, odict)
 
