@@ -24,8 +24,8 @@ g.set('alpha2' , 2.73)
 # 21-SPONGE emission.
 g.set('alpha_em', 2.1)
 
-g.set('SNR_thresh', 5.)
-g.set('SNR2_thresh', 5.)
+g.set('SNR_thresh', 3.)
+g.set('SNR2_thresh', 3.)
 g.set('plot', False)
 g.set('verbose', False)
 

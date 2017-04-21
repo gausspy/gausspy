@@ -1,0 +1,10 @@
+Example scripts and data for a "double" fit to HI emission
+and absorption pairs via GaussPy
+(1) decompose_double.py : Decomposes input spectra, which must include both
+absorption and emission profiles (absorption: x_values, data_list;
+emission: x_values_em, data_list_em). To instruct GaussPy to perform
+a "double" fit, the parameter "alpha_em" must be set (alpha_em = None 
+means GaussPy will perform a standard fit). 
+(2) plot_double.py : Plot the results of the "double" decomposition.
+(3) example_data.py : Set of 4 example HI pairs from The Millennium Arecibo 
+21 cm Absorption Line Survey (Heiles & Troland 2003a). 
