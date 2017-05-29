@@ -205,9 +205,9 @@ class GaussianDecomposer(object):
 
             # Final fit errors
             rchi2 = [result['rchi2']] if 'rchi2' in result else None
-            amps_err = result['best_fit_errors'][0:ncomps]  if ncomps_initial > 0 else []
-            fwhms_err = result['best_fit_errors'][ncomps:2*ncomps]  if ncomps_initial > 0 else []
-            offsets_err = result['best_fit_errors'][2*ncomps:3*ncomps]  if ncomps_initial > 0 else []
+            amps_err = result['best_fit_errors'][0:ncomps]  if ncomps > 0 else []
+            fwhms_err = result['best_fit_errors'][ncomps:2*ncomps]  if ncomps > 0 else []
+            offsets_err = result['best_fit_errors'][2*ncomps:3*ncomps]  if ncomps > 0 else []
 
             output_data['best_fit_rchi2'].append(rchi2) 
             output_data['means_fit_err'].append(offsets_err)
@@ -227,6 +227,14 @@ class GaussianDecomposer(object):
 		output_data['fwhms_fit_em'].append(fwhms)
 		output_data['means_fit_em'].append(offsets)
 		output_data['fit_labels'].append(fit_labels)
+
+                amps_err = result['best_fit_errors_em'][0:ncomps]  if ncomps > 0 else []
+                fwhms_err = result['best_fit_errors_em'][ncomps:2*ncomps]  if ncomps > 0 else []
+                offsets_err = result['best_fit_errors_em'][2*ncomps:3*ncomps]  if ncomps > 0 else []
+
+                output_data['means_fit_err_em'].append(offsets_err)
+                output_data['fwhms_fit_err_em'].append(fwhms_err)
+                output_data['amplitudes_fit_err_em'].append(amps_err)
 
         print '100 finished.%'
         return output_data
