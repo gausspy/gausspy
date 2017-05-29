@@ -217,20 +217,20 @@ class GaussianDecomposer(object):
 	    ncomps_abs = ncomps_initial
 	    # save emission fit parameters
 	    if self.p['alpha_em'] is not None:
-		ncomps = len(result['best_fit_parameters_em'])/3 
-		amps = result['best_fit_parameters_em'][0:ncomps] if ncomps > 0 else []
-		fwhms =result['best_fit_parameters_em'][ncomps:2*ncomps] if ncomps > 0 else []
-		offsets =result['best_fit_parameters_em'][2*ncomps:3*ncomps] if ncomps > 0 else []
-		fit_labels = result['fit_labels'] if ncomps > 0 else []
+		ncomps = len(result['best_fit_parameters_em'])/3 if 'best_fit_parameters_em' in result else 0
+		amps = result['best_fit_parameters_em'][0:ncomps] if 'best_fit_parameters_em' in result  else []
+		fwhms =result['best_fit_parameters_em'][ncomps:2*ncomps] if 'best_fit_parameters_em' in result else []
+		offsets =result['best_fit_parameters_em'][2*ncomps:3*ncomps] if 'best_fit_parameters_em' in result else []
+		fit_labels = result['fit_labels'] if 'best_fit_parameters_em' in result else []
 
 		output_data['amplitudes_fit_em'].append(amps)
 		output_data['fwhms_fit_em'].append(fwhms)
 		output_data['means_fit_em'].append(offsets)
 		output_data['fit_labels'].append(fit_labels)
 
-                amps_err = result['best_fit_errors_em'][0:ncomps]  if ncomps > 0 else []
-                fwhms_err = result['best_fit_errors_em'][ncomps:2*ncomps]  if ncomps > 0 else []
-                offsets_err = result['best_fit_errors_em'][2*ncomps:3*ncomps]  if ncomps > 0 else []
+                amps_err = result['best_fit_errors_em'][0:ncomps]  if 'best_fit_parameters_em' in result else []
+                fwhms_err = result['best_fit_errors_em'][ncomps:2*ncomps]  if 'best_fit_parameters_em' in result else []
+                offsets_err = result['best_fit_errors_em'][2*ncomps:3*ncomps] if 'best_fit_parameters_em' in result else []
 
                 output_data['means_fit_err_em'].append(offsets_err)
                 output_data['fwhms_fit_err_em'].append(fwhms_err)
