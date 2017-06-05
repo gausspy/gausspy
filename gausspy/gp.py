@@ -133,6 +133,7 @@ class GaussianDecomposer(object):
         # Dump information to hard drive to allow multiprocessing
         pickle.dump([self, science_data_path, ilist], open('batchdecomp_temp.pickle','w'))
         import batch_decomposition
+        batch_decomposition.init()
         result_list = batch_decomposition.func()
         print 'SUCCESS'
 
