@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d
 #from scipy.optimize import leastsq, minimize 
 from lmfit import minimize as lmfit_minimize
 from lmfit import Parameters, Minimizer, Parameters, Parameter, report_fit
-
+from scipy.ndimage.filters import gaussian_filter as gf
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
 from mpl_toolkits.axes_grid1 import AxesGrid
@@ -50,19 +50,22 @@ def paramvec_to_lmfit(paramvec):
     return params
 
 
-def paramvec_p3_to_lmfit(paramvec):
+def paramvec_p3_to_lmfit(paramvec,f):
     """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
     ncomps = len(paramvec)/ 5
     params = Parameters()
     labels = np.concatenate([paramvec[3*ncomps:4*ncomps],paramvec[3*ncomps:4*ncomps],paramvec[3*ncomps:4*ncomps]])
-    tau = paramvec[4*ncomps:]
-
+    tau = paramvec[4*ncomps:] 
+  
     val = 0.1
     for i in range(len(paramvec)-ncomps*2):
 	if i < ncomps:
-	    if labels[i] == 1:
-		max_tb = 21.86 * np.float(paramvec[i+ncomps])**2 * (1.-np.exp(-1.*tau[i]))
-		params.add('p'+str(i+1), value=paramvec[i], min=0., max=max_tb)
+	    if f==1:
+		if labels[i] == 1:
+		    max_tb = 21.866 * np.float(paramvec[i+ncomps])**2 * (1.-np.exp(-1.*tau[i]))
+		    params.add('p'+str(i+1), value=paramvec[i], min=0.0, max=max_tb)
+	    	else:
+		    params.add('p'+str(i+1), value=paramvec[i], min=0.0)
 	    else:
 		params.add('p'+str(i+1), value=paramvec[i], min=0.0)
 	if i >= ncomps and i < 2*ncomps:
@@ -76,8 +79,6 @@ def paramvec_p3_to_lmfit(paramvec):
 	    else:
 		params.add('p'+str(i+1), value=paramvec[i])
     return params
-
-
 
 
 def create_fitmask(size, offsets_i, di):
@@ -360,7 +361,6 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
             t0 = time.time()
             say('Running LMFIT on initial narrow components...', verbose)
             lmfit_params = paramvec_to_lmfit(params_g1)
-	    #print params_g1
             result = lmfit_minimize(objectiveD2_leastsq, lmfit_params, method='leastsq')
             params_f1 = vals_vec_from_lmfit(result.params)
             ncomps_f1 = len(params_f1) / 3
@@ -389,7 +389,8 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
                                                  BLFrac = BLFrac, 
                                                  SNR2_thresh = SNR2_thresh[1], # June 9 2014, change 
                                                  deblend=deblend, plot=plot)   
-        ncomps_g2  = agd2['N_components']
+
+        ncomps_g2 = len(agd2['amps'])
         if  ncomps_g2 > 0:
             params_g2 = np.concatenate([agd2['amps'],agd2['FWHMs'], agd2['means']])
         else: 
@@ -422,12 +423,8 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     w_sort_amp = np.argsort(amps_temp)[::-1]
     params_gf = np.concatenate([amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp]])
 
-    ncomps_fit = ncomps_gf
-    params_fit = params_gf
-
     if (perform_final_fit == True) and (ncomps_gf > 0):
         say('\n\n  --> Final Fitting... \n',verbose)
-
 
         # Objective functions for final fit
         def objective_leastsq(paramslm):
@@ -462,24 +459,37 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
             ncomps_fit = len(params_fit)/3
 
 	# Check if any offsets are outside of the velocity range, and if so, remove them:
-	if np.any(np.abs(params_fit[2*ncomps_fit:3*ncomps_fit]) > (np.min([np.abs(np.min(vel)), np.max(vel)])-5.)):
+	if np.any(np.array(params_fit[2*ncomps_fit:3*ncomps_fit]) > np.max(vel)):
             amps_fit = np.array(params_fit[0:ncomps_fit], dtype=float)
             fwhms_fit = np.array(params_fit[ncomps_fit:2*ncomps_fit], dtype=float)     
             offsets_fit = np.array(params_fit[2*ncomps_fit:3*ncomps_fit], dtype=float)
-            w_keep = np.abs(offsets_fit) < (np.min([np.abs(np.min(vel)), np.max(vel)])-5.)    
+            w_keep = offsets_fit < np.max(vel)    
             params_fit = np.concatenate([amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]])
             ncomps_fit = len(params_fit)/3
+
+	if np.any(np.array(params_fit[2*ncomps_fit:3*ncomps_fit]) < np.min(vel)):
+            amps_fit = np.array(params_fit[0:ncomps_fit], dtype=float)
+            fwhms_fit = np.array(params_fit[ncomps_fit:2*ncomps_fit], dtype=float)     
+            offsets_fit = np.array(params_fit[2*ncomps_fit:3*ncomps_fit], dtype=float)
+            w_keep = offsets_fit > np.min(vel)    
+            params_fit = np.concatenate([amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]])
+            ncomps_fit = len(params_fit)/3
+
+    else:
+	ncomps_fit = ncomps_gf
+	params_fit = params_gf
 
     # Construct output dictionary (odict)     
     # -----------------------------------
     odict = {}
-    odict['initial_parameters'] = params_gf 
+    odict['initial_parameters'] = params_gf
     odict['N_components'] = ncomps_fit
 
     if (perform_final_fit == True) and (ncomps_fit > 0): 
         odict['best_fit_parameters'] = params_fit
         odict['best_fit_errors'] = params_errs
         odict['rchi2'] = rchi2
+
 
     #------ ADDING SUBSEQUENT FIT FOR EMISSION-ONLY COMPONENTS ---------
     # -- Find initial guesses for fit of absorption components to emission
@@ -494,11 +504,7 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     dv = np.abs(vel[1] - vel[0])
     v_to_i = interp1d(vel, np.arange(len(vel)))
 
-    params_em = []
-    params_em_errs = []
-    ncomps_em = 0
     if ncomps_fit > 0:
-
         # Objective functions for  fit
         def objective_leastsq(paramslm):
             params = vals_vec_from_lmfit(paramslm)
@@ -509,15 +515,29 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
 
         # Final fit using constrained parameters
         t0 = time.time()
-        lmfit_params = paramvec_p3_to_lmfit(params_full)
+	f=1
+        lmfit_params = paramvec_p3_to_lmfit(params_full,f)
         result_em = lmfit_minimize(objective_leastsq, lmfit_params, method='leastsq')       
         params_em = vals_vec_from_lmfit(result_em.params)
         params_em_errs = errs_vec_from_lmfit(result_em.params)
         ncomps_em = len(params_em)/3
 
+	# Check if any offsets are outside of the velocity range, and if so, remove them:
+	if np.any(np.array(params_em[2*ncomps_em:3*ncomps_em]) > np.max(vel)):
+            amps_em = np.array(params_em[0:ncomps_em], dtype=float)
+            fwhms_em = np.array(params_em[ncomps_em:2*ncomps_em], dtype=float)     
+            offsets_em = np.array(params_em[2*ncomps_em:3*ncomps_em], dtype=float)
+            w_keep = offsets_em < np.max(vel)    
+            params_em = np.concatenate([amps_em[w_keep], fwhms_em[w_keep], offsets_em[w_keep]])
+            ncomps_em = len(params_em)/3
 
-        # Initially zero "added" components
-        ncomps_g3 = 0
+	if np.any(np.array(params_em[2*ncomps_em:3*ncomps_em]) < np.min(vel)):
+            amps_em = np.array(params_em[0:ncomps_em], dtype=float)
+            fwhms_em = np.array(params_em[ncomps_em:2*ncomps_em], dtype=float)     
+            offsets_em = np.array(params_em[2*ncomps_em:3*ncomps_em], dtype=float)
+            w_keep = offsets_em > np.min(vel)    
+            params_em = np.concatenate([amps_em[w_keep], fwhms_em[w_keep], offsets_em[w_keep]])
+            ncomps_em = len(params_em)/3
 
         # The "fitmask" is a collection of windows around the a list of two-phase absorption components     
         fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(params_em[2*ncomps_em:3*ncomps_em]), params_em[ncomps_em:2*ncomps_em] / dv / 2.355 * 0.9)
@@ -525,25 +545,28 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
         notfitmaskw  = np.logical_not(fitmaskw)
 
 	# Compute intermediate residuals
-	# Median filter on 2 x effective scale to remove poor subtractions of strong components
+	# Median filter on 2 x effective scale of absorption components to remove poor subtractions of strong components
 	intermediate_model = func(vel, *params_em).ravel() # Explicit final (narrow) model
-	median_window = 2. * 10**((np.log10(alpha_em) + 2.187) / 3.859)
+	median_window = 2. * 10**((np.log10(alpha1) + 2.187) / 3.859)
 	residuals = median_filter(data - intermediate_model, np.int(median_window))
-
+	#residuals = gf(data-intermediate_model, sigma = sig, mode='wrap')
+	#residuals = data - intermediate_model
     else:
+	params_em = []
+	params_em_errs = []
+	ncomps_em = 0
 	residuals = data
     # Finished producing residual emission signal # ---------------------------
 
-
     # Search for phase-three guesses in residual emission spectrum
     agd3 = initialGuess(vel, residuals, errors, 
-				alpha = alpha_em, mode = mode, verbose = verbose, 
+				alpha = alpha_em, mode = mode, verbose = verbose,
 				SNR_thresh = SNR_thresh[0], 
 				BLFrac = BLFrac, 
-				SNR2_thresh = SNR_thresh[0],  
+				SNR2_thresh = SNR2_thresh[0],  
 				deblend=deblend, plot=plot)   
 
-    ncomps_g3  = agd3['N_components']
+    ncomps_g3 = len(agd3['amps'])
     if  ncomps_g3 > 0:
 	params_g3 = np.concatenate([agd3['amps'],agd3['FWHMs'], agd3['means']])
     else: 
@@ -553,27 +576,24 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
     # Check for phase three components, make final guess list
     # ------------------------------------------------------
     if ncomps_g3 > 0:
-
 	abs_offsets = np.array(params_em[2*ncomps_em:3*ncomps_em], dtype=float)
 	em_widths = np.array(params_g3[ncomps_g3:2*ncomps_g3], dtype=float)
 	em_amps = np.array(params_g3[0:ncomps_g3], dtype=float)
 	em_offsets = np.array(params_g3[2*ncomps_g3:3*ncomps_g3], dtype=float)
 
-	ind = np.arange(len(em_offsets))
-	indices = []
-
+	#ind = np.arange(len(em_offsets))
+	#indices = []
 	# Check if any emission components are within 1 channel of an absorption component
-	for i, offset in enumerate(em_offsets):
-	    if np.any(abs_offsets-offset) < dv:
-		print 'drop'
-		continue
-	    else:
-		indices.append(i)
-
-	em_offsets = em_offsets[indices]
-	em_amps = em_amps[indices]
-	em_widths = em_widths[indices]
-	ncomps_g3 = len(em_amps)
+	#for i, offset in enumerate(em_offsets):
+	#    if np.any(abs_offsets-offset) < dv:
+	#	print 'drop'
+	#	continue
+	#    else:
+	#	indices.append(i)
+	#em_offsets = em_offsets[indices]
+	#em_amps = em_amps[indices]
+	#em_widths = em_widths[indices]
+	#ncomps_g3 = len(em_amps)
 
         amps_emf = np.append(params_em[0:ncomps_em], em_amps)
         widths_emf = np.append(params_em[ncomps_em:2*ncomps_em], em_widths)
@@ -592,7 +612,6 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
 	    tau_emf = []
 	    labels_emf = []
 
-
     if ncomps_emf > 0:
         say('\n\n  --> Final Fitting... \n',verbose)
 
@@ -607,7 +626,8 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
 
         # Final fit using constrained parameters
         t0 = time.time()
-        lmfit_params = paramvec_p3_to_lmfit(params_full)
+	f=0
+        lmfit_params = paramvec_p3_to_lmfit(params_full,f)
         result3 = lmfit_minimize(objective_leastsq, lmfit_params, method='leastsq')       
         params_emfit = vals_vec_from_lmfit(result3.params)
         params_emfit_errs = errs_vec_from_lmfit(result3.params)
@@ -622,17 +642,19 @@ def AGD_double(vel, data, vel_em, data_em, errors, errors_em, scale = None, alph
         best_fit_final = func(vel, *params_emfit).ravel()
         rchi2 = np.sum( (data - best_fit_final)**2 / errors**2) / len(data)
     else:
-	ncomps_emfit = ncomps_emf
+	ncomps_emfit = ncomps_em
+	params_emfit = params_em
+	params_emfit_errs = params_em_errs
 
     print 'ncomps before and after:', ncomps_fit, ncomps_emfit
 
     # Construct output dictionary (odict)     
     # -----------------------------------
     odict['N_components_em'] = ncomps_emfit
-    if ncomps_emfit > ncomps_fit:
-	odict['best_fit_parameters_em'] = params_emfit
-	odict['best_fit_errors_em'] = params_em_errs
-	odict['fit_labels'] = labels_emf
+    #if ncomps_emfit > ncomps_fit:
+    odict['best_fit_parameters_em'] = params_emfit
+    odict['best_fit_errors_em'] = params_emfit_errs
+    odict['fit_labels'] = labels_emf
 
     return (1, odict)
 
@@ -694,8 +716,8 @@ def AGD(vel, data, errors, alpha1 = None, alpha2 = None,
             # "Else" Narrow components were found, and Phase == 2, so perform intermediate subtraction...
 
             # The "fitmask" is a collection of windows around the a list of phase-one components   
-	    print v_to_i
-	    print offsets_g1     
+	    #print v_to_i
+	    #print offsets_g1     
             fitmask, fitmaskw = create_fitmask(len(vel), v_to_i(offsets_g1), widths_g1 / dv / 2.355 * 0.9)
             notfitmask  = 1 - fitmask
             notfitmaskw  = np.logical_not(fitmaskw)
