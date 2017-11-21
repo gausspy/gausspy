@@ -7,7 +7,7 @@ Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
 
 # Documentation
 
-New! The GaussPy documentation can be found on ReadTheDocs [here](gausspy.readthedocs.io). 
+New! The GaussPy documentation can be found on ReadTheDocs [here](http://gausspy.readthedocs.io/en/latest/) 
 
 # Installation
 
