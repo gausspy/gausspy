@@ -5,6 +5,10 @@ Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
 
 [Lindner et al. 2015](https://arxiv.org/abs/1409.2840)
 
+# Documentation
+
+New! The GaussPy documentation can be found on ReadTheDocs [here](gausspy.readthedocs.io). 
+
 # Installation
 
 ### Dependencies
