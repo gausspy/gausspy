@@ -29,8 +29,8 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.pngmath',
-    'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
+    #'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'numfig'
 ]
