@@ -23,10 +23,16 @@ def init():
 
 def decompose_one(i):
     print '   ---->  ', i 
-    result = GaussianDecomposer.decompose(agd_object, 
+    try:
+        result = GaussianDecomposer.decompose(agd_object, 
                                           agd_data['x_values'][i], 
                                           agd_data['data_list'][i], 
                                           agd_data['errors'][i])
+    except:
+        result = {}
+        result['N_components']=0
+        result['initial_parameters']=[]
+        result['best_fit_errors']=[]
     return result
 
 
@@ -38,7 +44,7 @@ def func():
     p = multiprocessing.Pool(ncpus, init_worker)
     if agd_object.p['verbose']: print 'N CPUs: ', ncpus
     try:
-        results_list = p.map(decompose_one, ilist)
+        results_list = p.map(decompose_one, ilist, chunksize=1)
 
     except KeyboardInterrupt:
         print "KeyboardInterrupt... quitting."
