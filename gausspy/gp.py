@@ -126,15 +126,14 @@ class GaussianDecomposer(object):
 
 
 
-    def batch_decomposition(self, science_data_path, ilist=None):
+    def batch_decomposition(self, agd_data,verbose=False,ilist=None):
         """ Science data sould be AGD format 
             ilist is either None or an integer list"""
         
-        # Dump information to hard drive to allow multiprocessing
-        pickle.dump([self, science_data_path, ilist], open('batchdecomp_temp.pickle','w'))
         import batch_decomposition
-        batch_decomposition.init()
-        result_list = batch_decomposition.func()
+        if isinstance(agd_data, basestring): agd_data = pickle.load(open(agd_data))
+        if ilist == None: ilist = np.arange(len(agd_data['x_values']))
+        result_list = batch_decomposition.func(self,agd_data, verbose,ilist)
         print 'SUCCESS'
 
         new_keys = ['index_fit', 'amplitudes_fit', 'fwhms_fit', 'means_fit',
