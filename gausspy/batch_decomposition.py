@@ -10,8 +10,8 @@ def init_worker():
     """ Worker initializer to ignore Keyboard interrupt """
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def decompose_one(agd_object,agd_data,i):
-    print '   ---->  ', i 
+def decompose_one(agd_object,agd_data,verbose,i):
+    if verbose: print '   ---->  ', i 
     try:
     	result = GaussianDecomposer.decompose(agd_object, 
                                           agd_data['x_values'][i], 
@@ -26,14 +26,14 @@ def decompose_one(agd_object,agd_data,i):
 
 
 
-def func(agd_object,agd_data, ilist):
+def func(agd_object,agd_data,verbose=False,ilist):
  # Multiprocessing code
     ncpus = multiprocessing.cpu_count()
     p = multiprocessing.Pool(ncpus, init_worker)
     if agd_object.p['verbose']: print 'N CPUs: ', ncpus
-    decompose = partial(decompose_one,agd_object, agd_data)
+    decompose = partial(decompose_one,agd_object, agd_data,verbose)
     try:
-        results_list = p.map(decompose, ilist, chunksize=1)
+        results_list = p.map(decompose, ilist)
     except KeyboardInterrupt:
         print "KeyboardInterrupt... quitting."
         p.terminate()
