@@ -26,7 +26,7 @@ def decompose_one(agd_object,agd_data,verbose,i):
 
 
 
-def func(agd_object,agd_data,verbose=False,ilist):
+def func(agd_object,agd_data,verbose,ilist):
  # Multiprocessing code
     ncpus = multiprocessing.cpu_count()
     p = multiprocessing.Pool(ncpus, init_worker)
