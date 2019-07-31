@@ -2,8 +2,8 @@ import pickle
 import multiprocessing
 import signal
 import numpy as np
-import AGD_decomposer
-from gp import GaussianDecomposer
+from . import AGD_decomposer
+from .gp import GaussianDecomposer
 
 # BUG FIXED:  UnboundLocalError: local variable 'result' referenced before assignment
 # Caused by using more threads than spectra.
@@ -22,7 +22,7 @@ def init():
 
 
 def decompose_one(i):
-    print '   ---->  ', i 
+    print('   ---->  ', i) 
     result = GaussianDecomposer.decompose(agd_object, 
                                           agd_data['x_values'][i], 
                                           agd_data['data_list'][i], 
@@ -36,12 +36,12 @@ def func():
  # Multiprocessing code
     ncpus = multiprocessing.cpu_count()
     p = multiprocessing.Pool(ncpus, init_worker)
-    if agd_object.p['verbose']: print 'N CPUs: ', ncpus
+    if agd_object.p['verbose']: print('N CPUs: ', ncpus)
     try:
         results_list = p.map(decompose_one, ilist)
 
     except KeyboardInterrupt:
-        print "KeyboardInterrupt... quitting."
+        print("KeyboardInterrupt... quitting.")
         p.terminate()
         quit()
     p.close()

@@ -3,7 +3,7 @@
 import inspect
 import multiprocessing
 import numpy as np
-import AGD_decomposer
+from . import AGD_decomposer
 import signal
 import time
 
@@ -87,7 +87,7 @@ def single_training_example(kwargs):
 
     # If nothing was found, skip to next iteration
     if status == 0:
-        print 'Nothing found in this spectrum,  continuing...'
+        print('Nothing found in this spectrum,  continuing...')
         return 0, 0, true_params / 3
 
     guess_params = result['initial_parameters'] 
@@ -103,18 +103,18 @@ def objective_function(alpha1, alpha2, training_data, SNR_thresh=5., SNR2_thresh
     del values['frame']  # This key not part of function arguments
 
     # Construct iterator of dictionaries of keywords for multi-processing
-    mp_params = iter([ dict(values.items()+{'j':j}.items())  for j in range(len(training_data['data_list']))])
+    mp_params = iter([ dict(list(values.items())+list({'j':j}.items()))  for j in range(len(training_data['data_list']))])
 
     # Multiprocessing code
     ncpus = multiprocessing.cpu_count()
     p = multiprocessing.Pool(ncpus, init_worker)
-    if verbose: print 'N CPUs: ', ncpus
+    if verbose: print('N CPUs: ', ncpus)
 
     try:
         mp_results = p.map(single_training_example, mp_params)
 
     except KeyboardInterrupt:
-        print "KeyboardInterrupt... quitting."
+        print("KeyboardInterrupt... quitting.")
         p.terminate()
         quit()
 
@@ -183,11 +183,11 @@ def train(objective_function=objective_function, training_data=None, alpha1_init
         p /= 3.
 
     if alpha2_initial is None and phase == 'two':
-        print 'alpha2_initial is required for two-phase decomposition.'
+        print('alpha2_initial is required for two-phase decomposition.')
         return None
 
     if alpha2_initial is not None and phase == 'one':
-        print 'alpha2_intial must be unset for one-phase decomposition.'
+        print('alpha2_intial must be unset for one-phase decomposition.')
         return None
 
     # Unpack the training data
@@ -218,7 +218,7 @@ def train(objective_function=objective_function, training_data=None, alpha1_init
         # Calls to objective function
         obj_1r = objective_function(alpha1_r, alpha2_c, training_data, phase=phase, data=data, errors=errors, means=means, vel=vel, FWHMs=FWHMs, amps=amps, verbose=verbose, plot=plot, SNR_thresh=SNR_thresh, SNR2_thresh=SNR2_thresh, mode=mode)
         if eps == 0.: 
-            print 'Mean Accuracy: ', np.exp(-obj_1r) # (Just sampling one position)
+            print('Mean Accuracy: ', np.exp(-obj_1r)) # (Just sampling one position)
             quit()
         obj_1l = objective_function(alpha1_l, alpha2_c, training_data, phase=phase, data=data, errors=errors, means=means, vel=vel, FWHMs=FWHMs, amps=amps, verbose=verbose, plot=plot, SNR_thresh=SNR_thresh, SNR2_thresh=SNR2_thresh, mode=mode)
 
@@ -247,13 +247,13 @@ def train(objective_function=objective_function, training_data=None, alpha1_init
             if gd.alpha1_trace[i+1] < 0.: gd.alpha1_trace[i+1] = 0.
             if gd.alpha2_trace[i+1] < 0.: gd.alpha2_trace[i+1] = 0.
  
-        print ''
-        print gd.alpha1_trace[i], learning_rate, gd.D_alpha1_trace[i], momentum1
-        print 'iter {0}: F1={1:4.1f}%, alpha=[{2}, {3}], p=[{4:4.2f}, {5:4.2f}]'.format(i, 100 * np.exp(-gd.accuracy_trace[i]), np.round(gd.alpha1_trace[i],2), np.round(gd.alpha2_trace[i],2), np.round(momentum1,2), np.round(momentum2,2)),
+        print('')
+        print(gd.alpha1_trace[i], learning_rate, gd.D_alpha1_trace[i], momentum1)
+        print('iter {0}: F1={1:4.1f}%, alpha=[{2}, {3}], p=[{4:4.2f}, {5:4.2f}]'.format(i, 100 * np.exp(-gd.accuracy_trace[i]), np.round(gd.alpha1_trace[i],2), np.round(gd.alpha2_trace[i],2), np.round(momentum1,2), np.round(momentum2,2)), end=' ')
     
     #    if False: (use this to avoid convergence testing)
         if i <= 2 * window_size:
-            print ' (Convergence testing begins in {} iterations)'.format(int(2 * window_size - i))
+            print(' (Convergence testing begins in {} iterations)'.format(int(2 * window_size - i)))
         else:
             gd.alpha1means1[i] = np.mean(gd.alpha1_trace[i - window_size:i])
             gd.alpha1means2[i] = np.mean(gd.alpha1_trace[i - 2 * window_size:i - window_size])
@@ -270,13 +270,13 @@ def train(objective_function=objective_function, training_data=None, alpha1_init
                 converge_logic = (gd.fracdiff_alpha1 < thresh)
                 
             c = count_ones_in_row(converge_logic)
-            print '  ({0:4.2F},{1:4.2F} < {2:4.2F} for {3} iters [{4} required])'.format(gd.fracdiff_alpha1[i],gd.fracdiff_alpha2[i], thresh, int(c[i]),iterations_for_convergence)
+            print('  ({0:4.2F},{1:4.2F} < {2:4.2F} for {3} iters [{4} required])'.format(gd.fracdiff_alpha1[i],gd.fracdiff_alpha2[i], thresh, int(c[i]),iterations_for_convergence))
 
             
             if np.any(c > iterations_for_convergence):
                 i_converge = np.min(np.argwhere(c > iterations_for_convergence))
                 gd.iter_of_convergence = i_converge
-                print 'Stable convergence acheived at iteration: ', i_converge
+                print('Stable convergence acheived at iteration: ', i_converge)
                 break
 
     # Return best-fit alphas, and bookkeeping object    

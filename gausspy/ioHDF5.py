@@ -33,21 +33,21 @@ def dict_to_hdf5(hdf5_dataset, dic):
     """
     Write an array with the given namespace to an hdf5 dataset
     """
-    for key in dic.keys():
+    for key in list(dic.keys()):
         array = dic[key]['data']
-        print key, ', ', len(array)
+        print(key, ', ', len(array))
         dset = hdf5_dataset.create_dataset(key, (len(array),), dtype=dic[key]['type'], compression='gzip')
         dset[:] = array
 
 
 def toHDF5(data, filename):
 
-    keys = data.keys()
+    keys = list(data.keys())
     flat_dict = {}
 
 
     if 'data_list' in keys:
-        print 'Found data_list...'
+        print('Found data_list...')
         data_flat = np.concatenate(data['data_list'])
         data_lens = [len(data['data_list'][i]) for i in range(len(data['data_list']))]
         flat_dict.update({'data_flat':{'data':data_flat,'type':'float32'}, 
@@ -71,10 +71,10 @@ def toHDF5(data, filename):
             flat_dict.update({'params'+tag:{'data':params,'type':'float32'}})
 
 
-    print 'Groups to be written to HDF5: ',flat_dict.keys() 
+    print('Groups to be written to HDF5: ',list(flat_dict.keys())) 
 
     #Create output HDF5 file
-    print filename
+    print(filename)
     f = h5py.File(filename, 'w')
     dict_to_hdf5(f, flat_dict) 
     f.close()
@@ -89,12 +89,12 @@ def reconstruct(flat_list, index_list, n_spectra):
 
 def fromHDF5(filename):
 
-    print
-    print 'Loading data from HDF5 file...'
+    print()
+    print('Loading data from HDF5 file...')
     data= {}
     f = h5py.File(filename)
-    fkeys = f.keys()
-    print 'Groups in HDF5 file: ', fkeys 
+    fkeys = list(f.keys())
+    print('Groups in HDF5 file: ', fkeys) 
 
 
 
@@ -132,12 +132,12 @@ def fromHDF5(filename):
     # Inflate Gaussian parameter lists
     for tag in ['', '_fit', '_initial']:
         if 'params'+tag in fkeys:
-            print 'Group: params' + tag, ' found in HDF5 file.'
+            print('Group: params' + tag, ' found in HDF5 file.')
             n = len(f['params'+tag]) / 4
             index_flat = f['params'+tag][3*n:4*n]
             keys = ['amplitudes' + tag, 'fwhms' + tag, 'means' + tag]
             for i in range(len(keys)):
-                print '>>>', keys[i]
+                print('>>>', keys[i])
                 data[keys[i]] = reconstruct(f['params' + tag][i*n:n*(i+1)], index_flat, n_spectra)
 
 
@@ -161,9 +161,9 @@ if __name__ == '__main__':
     toHDF5(data, 'agd_data.hdf5')
 
     amplitudes_fit = fromHDF5('agd_data.hdf5')
-    print len(amplitudes_fit)
-    print len(data['amplitudes_fit'])
-    print amplitudes_fit[18] == data['amplitudes_fit'][18]
+    print(len(amplitudes_fit))
+    print(len(data['amplitudes_fit']))
+    print(amplitudes_fit[18] == data['amplitudes_fit'][18])
 
 
 

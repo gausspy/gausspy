@@ -18,7 +18,7 @@ from mpl_toolkits.axes_grid1 import AxesGrid
 from scipy.ndimage.filters import median_filter, convolve
 
 # Python Regularized derivatives
-import tvdiff
+from . import tvdiff
 
 # C code Regularized derivatives
 import tv
@@ -26,13 +26,13 @@ import tv
 
 def vals_vec_from_lmfit(lmfit_params):
     """ Return Python list of parameter values from LMFIT Parameters object"""
-    vals = [value.value for value in lmfit_params.itervalues()]
+    vals = [value.value for value in lmfit_params.values()]
     return vals
 
 
 def errs_vec_from_lmfit(lmfit_params):
     """ Return Python list of parameter uncertainties from LMFIT Parameters object"""
-    errs = [value.stderr for value in lmfit_params.itervalues()]
+    errs = [value.stderr for value in lmfit_params.values()]
     return errs
 
 
@@ -67,7 +67,7 @@ def say(message, verbose = False):
     """ Diagnostic messages
     """
     if verbose == True:
-        print message
+        print(message)
 
 
 def gaussian(peak, FWHM, mean):
@@ -116,11 +116,11 @@ def initialGuess(vel, data , errors = None, alpha = None, plot = False, mode ='c
     say('BLFrac = {0}'.format(BLFrac), verbose)
 
     if not alpha:
-        print 'Must choose value for alpha, no default.'
+        print('Must choose value for alpha, no default.')
         return
 
     if np.any(np.isnan(data)):
-        print 'NaN-values in data, cannot continue.'
+        print('NaN-values in data, cannot continue.')
         return
 
     # Data inspection
@@ -269,7 +269,7 @@ def AGD(vel, data, errors, alpha1 = None, alpha2 = None,
     say('\n  --> AGD() \n',verbose)
 
     if (not alpha2) and (phase=='two'):
-        print 'alpha2 value required'
+        print('alpha2 value required')
         return
 
     dv = np.abs(vel[1] - vel[0])

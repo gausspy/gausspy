@@ -186,7 +186,7 @@ def TVdiff(data, dx = 1.0, alph = 0.1, beta = 0.1, thresh = 1E-4, max_iter=20):
     return np.array(u).ravel() /scale_data / dxi
 
 if __name__ == "__main__":
-    print 'Not running from command line yet!...'
+    print('Not running from command line yet!...')
     
 
     

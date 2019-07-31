@@ -27,18 +27,18 @@ def fromASCII(dirpath):
 
     files = os.listdir(dirpath)
 
-    for item in data.keys():
+    for item in list(data.keys()):
         if item not in files:
-            print 'Missing: ', item        
+            print('Missing: ', item)        
             del data[item]
             if item != 'errors':
-                print 'Required.'
+                print('Required.')
                 quit()    
     
     for key in data:
         loadAGDkey(data, key, dirpath)
    
-        print ','.join([key ,str(len(data[key]))])
+        print(','.join([key ,str(len(data[key]))]))
 
 
     return data

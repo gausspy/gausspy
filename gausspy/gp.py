@@ -6,9 +6,9 @@ import signal
 from matplotlib import pyplot as plt
 import numpy as np
 
-import AGD_decomposer
-import gradient_descent
-import ioHDF5
+from . import AGD_decomposer
+from . import gradient_descent
+from . import ioHDF5
 
 
 class GaussianDecomposer(object):
@@ -41,14 +41,14 @@ class GaussianDecomposer(object):
         
         if (((self.p['phase'] == 'one') and (not alpha1_initial)) or
            ((self.p['phase'] == 'two') and ((not alpha1_initial) or (not alpha1_initial)))):
-            print 'Must choose initial guesses.'
-            print 'e.g., train(alpha1_initial=1.0, alpha2_initial=100.)'
+            print('Must choose initial guesses.')
+            print('e.g., train(alpha1_initial=1.0, alpha2_initial=100.)')
             return
         if not self.p['training_data']:
-            print 'Must first load training data.'
-            print 'e.g., load_training_data("training_data.pickle")'
+            print('Must first load training data.')
+            print('e.g., load_training_data("training_data.pickle")')
             return
-        print 'Training...'
+        print('Training...')
 
         self.p['alpha1'], self.p['alpha2'], self.p['training_results'] = gradient_descent.train(
                                                                          alpha1_initial = alpha1_initial, 
@@ -66,11 +66,11 @@ class GaussianDecomposer(object):
         """ Decompose a single spectrum using current parameters """
         
         if ((self.p['phase'] == 'one') and (not self.p['alpha1'])):
-            print 'phase = one, and alpha1 is unset'
+            print('phase = one, and alpha1 is unset')
             return
             
         if  (self.p['phase'] == 'two') and ((not self.p['alpha1']) or (not self.p['alpha2'])):
-            print 'phase = two, and either alpha1 or alpha2 is unset'
+            print('phase = two, and either alpha1 or alpha2 is unset')
             return
 
         if self.p['mode'] != 'conv':
@@ -93,14 +93,14 @@ class GaussianDecomposer(object):
         
     def status(self):
         """ Return current values of parameters """        
-        print 'Current Parameters:'
-        print '---' * 10
+        print('Current Parameters:')
+        print('---' * 10)
         for index, key in enumerate(self.p):
             if key in ['data_list','errors','x_values', 'amplitudes', 'fwhms', 
                        'means','amplitudes_fit', 'fwhms_fit', 'means_fit']:
-                print 'len({0}) = {1}'.format(key, len(self.p[key]))
+                print('len({0}) = {1}'.format(key, len(self.p[key])))
             else:
-                print key,  ' = ', self.p[key]
+                print(key,  ' = ', self.p[key])
 
 
 
@@ -108,7 +108,7 @@ class GaussianDecomposer(object):
         if key in self.p:
             self.p[key] = value
         else:
-            print 'Given key does not exist.'
+            print('Given key does not exist.')
 
         
                
@@ -120,7 +120,7 @@ class GaussianDecomposer(object):
             if clobber:
                 os.remove(filename)
             else:
-                print 'File exists: ', filename
+                print('File exists: ', filename)
                 return            
         pickle.dump(self, open(filename, 'w'))
 
@@ -132,10 +132,10 @@ class GaussianDecomposer(object):
         
         # Dump information to hard drive to allow multiprocessing
         pickle.dump([self, science_data_path, ilist], open('batchdecomp_temp.pickle','w'))
-        import batch_decomposition
+        from . import batch_decomposition
         batch_decomposition.init()
         result_list = batch_decomposition.func()
-        print 'SUCCESS'
+        print('SUCCESS')
 
         new_keys = ['index_fit', 'amplitudes_fit', 'fwhms_fit', 'means_fit',
                     'index_initial', 'amplitudes_initial', 'fwhms_initial', 'means_initial',
@@ -178,7 +178,7 @@ class GaussianDecomposer(object):
             output_data['fwhms_fit_err'].append(fwhms_err)
             output_data['amplitudes_fit_err'].append(amps_err)
 
-        print '100 finished.%'
+        print('100 finished.%')
         return output_data
 
 
