@@ -33,4 +33,4 @@ install:
   - python setup.py install
 
 script:
-  - py.test  # will run all tests in the package
+  - pytest tests  # will run all tests in the package
