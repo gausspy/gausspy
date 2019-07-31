@@ -1,60 +1,31 @@
+# We set the language to c because python isn't supported on the MacOS X nodes
+# on Travis. However, the language ends up being irrelevant anyway, since we
+# install Python ourselves using conda.
 language: c
 
-python:
-  - "3.6"
+os:
+    - linux
+
+sudo: false
 
 env:
     global:
-    
-        # The following versions are the 'default' for tests, unless
-        # overridden underneath. They are defined here in order to save having
-        # to repeat them for all configurations.
-        - PYTHON_VERSION=3.6
-        - NUMPY_VERSION=stable
-        - ASTROPY_VERSION=stable
-        - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='pytest-faulthandler pytest-mpl'
-        - EVENT_TYPE='pull_request push'
+        - TEST_CMD='py.test'
+        - MAIN_CMD='python setup.py install'
+        - PYTHON_VERSION=3.6
 
     matrix:
-        # Make sure that egg_info works without dependencies
-        #- PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
-        #- PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
-        - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
-        #- PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
+        - SETUP_CMD='egg_info' TEST_CMD='python --version'
         
 os: 
   - osx
   - linux
 
-before_install:
-
-  # Here we just install Miniconda, which you shouldn't have to change.
-
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda/bin:$PATH
-  - conda update --yes conda
 
 install:
-
-  # We just set up a conda environment with the right Python version. This
-  # should not need changing.
-
-  - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
-  - source activate test
-
-  # Below, include the dependencies you want to install with conda, optionally
-  # specifying versions used in the matrix above. If you split this into
-  # multiple conda install commands, you should always include numpy=$NUMPY as
-  # the first package to install (for every conda install command) otherwise
-  # numpy may be automatically upgraded.
-
-  - conda install --yes numpy=$NUMPY scipy=$SCIPY astropy matplotlib pytest pip
-
-  # You can also install some dependencies with pip if not available in conda
+  - git clone --depth 1 git://github.com/astropy/ci-helpers.git
+  - source ci-helpers/travis/setup_conda.sh
 
   - pip install lmfit
   - python setup.py install
