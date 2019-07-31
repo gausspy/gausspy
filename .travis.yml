@@ -6,8 +6,6 @@ python:
 env:
     global:
     
-    env:
-    global:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
@@ -18,14 +16,7 @@ env:
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES='pytest-faulthandler pytest-mpl'
         - EVENT_TYPE='pull_request push'
-        - GH_REF: github.com/cmurray-astro/gausspy.git
 
-        # For this package-template, we include examples of Cython modules,
-        # so Cython is required for testing. If your package does not include
-        # Cython code, you can set CONDA_DEPENDENCIES=''
-        - CONDA_DEPENDENCIES='numpy scipy h5py matplotlib'
-        # - CONDA_DEPENDENCIES_DOC='sphinx-astropy sip<4.19 Cython scipy h5py matplotlib pytables hdf5 dust_extinction'
-        
     matrix:
         # Make sure that egg_info works without dependencies
         #- PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
