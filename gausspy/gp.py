@@ -14,7 +14,7 @@ from . import ioHDF5
 class GaussianDecomposer(object):
     def __init__(self, filename=None, phase="one"):
         if filename:
-            temp = pickle.load(open(filename))
+            temp = pickle.load(open(filename, "rb"))
             self.p = temp.p
         else:
             self.p = {
@@ -33,7 +33,7 @@ class GaussianDecomposer(object):
             }
 
     def load_training_data(self, filename):
-        self.p["training_data"] = pickle.load(open(filename))
+        self.p["training_data"] = pickle.load(open(filename, "rb"))
 
     def load_hdf5_data(self, filename):
         return ioHDF5.fromHDF5(filename)
@@ -158,15 +158,15 @@ class GaussianDecomposer(object):
             else:
                 print("File exists: ", filename)
                 return
-        pickle.dump(self, open(filename, "w"))
+        pickle.dump(self, open(filename, "wb"))
 
     def batch_decomposition(self, science_data_path, ilist=None):
-        """ Science data sould be AGD format 
+        """ Science data sould be AGD format
             ilist is either None or an integer list"""
 
         # Dump information to hard drive to allow multiprocessing
         pickle.dump(
-            [self, science_data_path, ilist], open("batchdecomp_temp.pickle", "w")
+            [self, science_data_path, ilist], open("batchdecomp_temp.pickle", "wb")
         )
         from . import batch_decomposition
 

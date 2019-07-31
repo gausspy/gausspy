@@ -17,9 +17,9 @@ def init_worker():
 def init():
     global agd_object, science_data_path, ilist, agd_data
     [agd_object, science_data_path, ilist] = pickle.load(
-        open("batchdecomp_temp.pickle")
+        open("batchdecomp_temp.pickle", "rb")
     )
-    agd_data = pickle.load(open(science_data_path))
+    agd_data = pickle.load(open(science_data_path, "rb"))
     if ilist == None:
         ilist = np.arange(len(agd_data["x_values"]))
 

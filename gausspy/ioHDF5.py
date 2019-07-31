@@ -150,7 +150,7 @@ if __name__ == "__main__":
     datapath = (
         "/home/robert/git/paper_diffspec/Pickles/SPONGE_data_decomposed_twophase.pickle"
     )
-    data = pickle.load(open(datapath))
+    data = pickle.load(open(datapath, "rb"))
     toHDF5(data, "agd_data.hdf5")
 
     amplitudes_fit = fromHDF5("agd_data.hdf5")
