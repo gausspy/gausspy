@@ -23,7 +23,7 @@ env:
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
-        - CONDA_DEPENDENCIES='numpy scipy h5py matplotlib pytest'
+        - CONDA_DEPENDENCIES='numpy scipy h5py matplotlib'
         # - CONDA_DEPENDENCIES_DOC='sphinx-astropy sip<4.19 Cython scipy h5py matplotlib pytables hdf5 dust_extinction'
         
     matrix:
@@ -48,6 +48,7 @@ install:
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
   - source activate test-env
   # - conda install numpy, scipy, matplotlib, pytest
+  - pip install pytest
   - pip install lmfit
   - python setup.py install
 
