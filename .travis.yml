@@ -28,7 +28,7 @@ os:
 install:
   - git clone --depth 1 git://github.com/astropy/ci-helpers.git
   - source ci-helpers/travis/setup_conda.sh
-  - conda install numpy, matplotlib, scipy, h5py
+  - conda install numpy matplotlib scipy h5py
   - pip install lmfit
   - pip install pytest
   - python setup.py install
