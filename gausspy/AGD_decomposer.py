@@ -21,9 +21,6 @@ from scipy.ndimage.filters import median_filter, convolve
 # Python Regularized derivatives
 from . import tvdiff
 
-# C code Regularized derivatives
-import tv
-
 
 def vals_vec_from_lmfit(lmfit_params):
     """ Return Python list of parameter values from LMFIT Parameters object"""
@@ -105,10 +102,10 @@ def initialGuess(
     deblend=True,
 ):
     """  Find initial parameter guesses (AGD algorithm)
-    
-    data,             Input data 
-    dv,             x-spacing absolute units 
-    alpha = No Default,     regularization parameter 
+
+    data,             Input data
+    dv,             x-spacing absolute units
+    alpha = No Default,     regularization parameter
     plot = False,     Show diagnostic plots?
     verbose = True    Diagnostic messages
     SNR_thresh = 5.0  Initial Spectrum S/N threshold
@@ -149,17 +146,6 @@ def initialGuess(
         u2 = tvdiff.TVdiff(u, dx=dv, alph=alpha)
         u3 = tvdiff.TVdiff(u2, dx=dv, alph=alpha)
         u4 = tvdiff.TVdiff(u3, dx=dv, alph=alpha)
-    elif mode == "c":
-        say("Taking c derivatives...", verbose)
-        u = u2 = u3 = u4 = np.zeros(len(data))
-        tv.tv(data=data, deriv=u, alpha=alpha, dx=1)
-        u = u / dv
-        tv.tv(data=u, deriv=u2, alpha=alpha, dx=1)
-        u2 = u2 / dv
-        tv.tv(data=u2, deriv=u3, alpha=alpha, dx=1)
-        u3 = u3 / dv
-        tv.tv(data=u3, deriv=u4, alpha=alpha, dx=1)
-        u4 = u4 / dv
     elif mode == "conv":
         say("Convolution sigma [pixels]: {0}".format(alpha), verbose)
         gauss_sigma = alpha
