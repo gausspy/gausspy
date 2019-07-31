@@ -60,7 +60,7 @@ def test_make_science_data():
             agd_data["fwhms"] = agd_data.get("fwhms", []) + [fwhms]
             agd_data["means"] = agd_data.get("means", []) + [means]
 
-    pickle.dump(agd_data, open(FILENAME, "w"))
+    pickle.dump(agd_data, open(FILENAME, "wb"))
     print("Created: ", FILENAME)
 
 
@@ -114,7 +114,7 @@ def test_make_train_data():
             agd_data["fwhms"] = agd_data.get("fwhms", []) + [fwhms]
             agd_data["means"] = agd_data.get("means", []) + [means]
 
-    pickle.dump(agd_data, open(FILENAME, "w"))
+    pickle.dump(agd_data, open(FILENAME, "wb"))
     print("Created: ", FILENAME)
 
 
@@ -168,7 +168,7 @@ def test_decompose():
     new_data = g.batch_decomposition(SCIENCE_DATA)
     print("Elapsed time [s]: ", int(time.time() - t0))
 
-    pickle.dump(new_data, open("agd_data_science_decomposed.pickle", "w"))
+    pickle.dump(new_data, open("agd_data_science_decomposed.pickle", "wb"))
 
 
 def test_remove_files():
