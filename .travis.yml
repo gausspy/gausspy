@@ -14,6 +14,8 @@ env:
         - TEST_CMD='py.test'
         - MAIN_CMD='python setup.py install'
         - PYTHON_VERSION=3.6
+        - CONDA_DEPENDENCIES='numpy scipy h5py matplotlib'
+        - PIP_DEPENDENCIES='pytest-faulthandler pytest-mpl lmfit'
 
     matrix:
         - SETUP_CMD='egg_info' TEST_CMD='python --version'
@@ -27,7 +29,7 @@ install:
   - git clone --depth 1 git://github.com/astropy/ci-helpers.git
   - source ci-helpers/travis/setup_conda.sh
 
-  - pip install lmfit
+  #- pip install lmfit
   - python setup.py install
 
 script:
