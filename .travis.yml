@@ -8,8 +8,8 @@ env:
         - GH_REF: github.com/cmurray-astro/gausspy.git
         
 # use a virtual environment to install python packages
-virtualenv:
-  system_site_packages: true
+#virtualenv:
+#  system_site_packages: true
       
 os: 
   - osx
