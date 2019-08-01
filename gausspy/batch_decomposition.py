@@ -31,15 +31,15 @@ def init(*args):
         [agd_object, science_data_path, ilist] = pickle.load(
             open('batchdecomp_temp.pickle', 'rb'), encoding='latin1')
         agd_data = pickle.load(open(science_data_path, 'rb'), encoding='latin1')
-    if ilist == None:
+    if ilist is None:
         ilist = np.arange(len(agd_data['data_list']))
 
 
 def decompose_one(i):
-    print("   ---->  ", i) 
-    result = GaussianDecomposer.decompose(agd_object, 
-                                          agd_data['x_values'][i], 
-                                          agd_data['data_list'][i], 
+    print("   ---->  ", i)
+    result = GaussianDecomposer.decompose(agd_object,
+                                          agd_data['x_values'][i],
+                                          agd_data['data_list'][i],
                                           agd_data['errors'][i])
     return result
 
@@ -48,12 +48,12 @@ def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=1):
     """A parallel version of the map function with a progress bar.
     Args:
         array (array-like): An array to iterate over.
-        function (function): A python function to apply to the elements of array
+        function (function): A python function to apply to the array elements
         n_jobs (int, default=16): The number of cores to use
-        use_kwargs (boolean, default=False): Whether to consider the elements of array as dictionaries of
-            keyword arguments to function
-        front_num (int, default=3): The number of iterations to run serially before kicking off the parallel job.
-            Useful for catching bugs
+        use_kwargs (boolean, default=False): Whether to consider the elements 
+            as dictionaries of keyword arguments to function
+        front_num (int, default=3): The number of iterations to run serially 
+            before kicking off the parallel job. Useful for catching bugs
     Returns:
         [function(array[0]), function(array[1]), ...]
     """
