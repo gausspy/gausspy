@@ -22,7 +22,7 @@ You will need download and install following packages to run GaussPy:
 
 * `Python 3.6+ <https://www.python.org/>`_
 
-* `numpy <http://www.numpy.org/>`_
+* `numpy (version 1.14 or later) <http://www.numpy.org/>`_
 
 * `scipy <http://www.scipy.org/>`_
 
