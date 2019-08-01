@@ -187,7 +187,7 @@ def test_remove_files():
 def main():
     test_make_science_data()
     test_make_train_data()
-    test_train()
+    #test_train()
     test_decompose()
 
 if __name__ == "__main__":
