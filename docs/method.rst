@@ -37,7 +37,6 @@ minimum in the curvature. That is, the algorithm looks for points
 * The function :math:`f(x)` has a non-trivial value
 
 .. math::  f(x^*) > \epsilon_0.
-   :label: f0const
 
 In an ideal situation where the contribution from noise vanishes we
 can take :math:`\epsilon_0=0`. However, when random fluctuations are
@@ -50,7 +49,6 @@ in proportion to the RMS of the analyzed signal.
   :math:`x^*`
 
 .. math::  \left.\frac{{\rm d}^2f}{{\rm d}x^2}\right|_{x=x^*}  < 0,
-   :label: f2const
 
 this selection of the inequality ensures also that such feature has
 negative curvature, or equivalently, that the point :math:`x^*` is
@@ -62,10 +60,8 @@ also need to ensure that the curvature has a minimum at this location.
   :math:`f(x)`
 
 .. math:: \left.\frac{{\rm d}^3f}{{\rm d}x^3}\right|_{x=x^*} = 0
-   :label: f3const
 
 .. math:: \left.\frac{{\rm d}^4f}{{\rm d}x^4}\right|_{x=x^*} > 0
-   :label: f4const
             
 
 These 4 constraints then ensure that the point :math:`x^*` is a local
@@ -131,7 +127,6 @@ functional defined by
 
 .. math:: R[u] = \int | A u - f | + \alpha \int \sqrt{(Du)^2 +
           \beta^2},
-   :label: deriv
 
 where :math:`A u = \int {\rm d}x\; u`. Note that if :math:`\alpha=0`
 this is equivalent to find the derivative of the function
