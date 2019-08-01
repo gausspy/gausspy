@@ -1,8 +1,6 @@
 import h5py
 import numpy as np
 import pickle
-import sys
-
 
 def flatten(nested_array):
     """
@@ -68,9 +66,7 @@ def toHDF5(data, filename):
     # Compress Gaussian components
     for tag in ["", "_fit", "_initial"]:
         if (
-            ("amplitudes" + tag in keys)
-            and ("fwhms" + tag in keys)
-            and ("means" + tag in keys)
+            ("amplitudes" + tag in keys) and ("fwhms" + tag in keys) and ("means" + tag in keys)
         ):
             params = flatten_keys(
                 data, ["amplitudes" + tag, "fwhms" + tag, "means" + tag]
@@ -132,12 +128,12 @@ def fromHDF5(filename):
         if "params" + tag in fkeys:
             print("Group: params" + tag, " found in HDF5 file.")
             n = len(f["params" + tag]) / 4
-            index_flat = f["params" + tag][3 * n : 4 * n]
+            index_flat = f["params" + tag][3 * n: 4 * n]
             keys = ["amplitudes" + tag, "fwhms" + tag, "means" + tag]
             for i in range(len(keys)):
                 print(">>>", keys[i])
                 data[keys[i]] = reconstruct(
-                    f["params" + tag][i * n : n * (i + 1)], index_flat, n_spectra
+                    f["params" + tag][i * n: n * (i + 1)], index_flat, n_spectra
                 )
 
     f.close()
