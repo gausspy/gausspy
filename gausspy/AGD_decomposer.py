@@ -94,7 +94,7 @@ def initialGuess(
     errors=None,
     alpha=None,
     plot=False,
-    mode="python",
+    mode="conv",
     verbose=False,
     SNR_thresh=5.0,
     BLFrac=0.1,
