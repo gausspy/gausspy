@@ -20,7 +20,7 @@ GaussPy
 
 A python tool for implementing the Autonomous Gaussian Decomposition (AGD) algorithm.
 
-Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
+**Team**: Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
 
 The full details of AGD can be found in `Lindner et al. (2015) <https://arxiv.org/abs/1409.2840>`_
 
