@@ -2,7 +2,7 @@
    :width: 600
 
 .. image:: http://readthedocs.org/projects/gausspy/badge/?version=latest
-   :target: https://gausspy.readthedocs.io/en/latest/badge=latest
+   :target: https://gausspy.readthedocs.io/en/latest/
    :alt: Documentation Status
 
 .. image:: https://travis-ci.org/cmurray-astro/gausspy.svg?branch=master
