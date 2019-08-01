@@ -5,7 +5,7 @@ Simple Example Tutorial
 =======================================
 
 Constructing a GaussPy-Friendly Dataset
---------------------------------------
+----------------------------------------
 
 Before implementing AGD, we first must put data into a format readable by
 GaussPy. GaussPy requires the indepenent and dependent spectral arrays (e.g.,
@@ -249,7 +249,7 @@ Multiple Gaussians Tutorial
 
 
 Constructing a GaussPy-Friendly Dataset
---------------------------------------
+-----------------------------------------
 
 As discussed in the :ref:`simple-example-tutorial`, before running GaussPy we
 must ensure that our data is in a format readable by GaussPy. In particular, for
@@ -410,7 +410,7 @@ Training AGD
 ==============
 
 Creating a Synthetic Training Dataset
-----------------------------
+--------------------------------------
 
 To select the optimal value of the smoothing parameter :math:`\alpha`, you must
 train the AGD algorithm using a training dataset with known underlying Gaussian
@@ -574,7 +574,7 @@ To ensure that the training converges on the optimal value of :math:`\alpha` and
 
 
 Running GaussPy using Trained :math:`\alpha`
--------------------------------------------
+----------------------------------------------
 
 With a trained value of :math:`\alpha` in hand, we can proceed to decompose our
 target dataset with AGD. In this example, we will return to the example from the
