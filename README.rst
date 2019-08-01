@@ -26,7 +26,7 @@ Documentation
 ===============
 
 Details of installing, running, and contributing to the GaussPy are at
-<http://gausspypy3.readthedocs.io>.
+<http://gausspy-py3.readthedocs.io>.
 
 ===============
 Contributing
