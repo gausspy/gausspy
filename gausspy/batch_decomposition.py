@@ -36,25 +36,12 @@ def init(*args):
 
 
 def decompose_one(i):
-    if agd_data['data_list'][i] is not None:
-        if 'signal_ranges' in list(agd_data.keys()):
-            signal_ranges = agd_data['signal_ranges'][i]
-            noise_spike_ranges = agd_data['noise_spike_ranges'][i]
-        else:
-            signal_ranges, noise_spike_ranges = (None for _ in range(2))
-
-        # TODO: what if idx keyword is missing or None?
-        result = GaussianDecomposer.decompose(
-            agd_object,
-            agd_data['x_values'],
-            agd_data['data_list'][i],
-            agd_data['error'][i] * np.ones(len(agd_data['x_values'])),
-            idx=agd_data['index'][i],
-            signal_ranges=signal_ranges,
-            noise_spike_ranges=noise_spike_ranges)
-        return result
-    else:
-        return None
+    print '   ---->  ', i 
+    result = GaussianDecomposer.decompose(agd_object, 
+                                          agd_data['x_values'][i], 
+                                          agd_data['data_list'][i], 
+                                          agd_data['errors'][i])
+    return result
 
 
 def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=1):
