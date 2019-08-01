@@ -1,6 +1,5 @@
-===============
-GaussPy
-===============
+.. image:: doc/gausspy.png
+   :width: 600
 
 .. image:: http://readthedocs.org/projects/gausspy/badge/?version=latest
    :target: https://gausspy.readthedocs.io/en/latest/badge=latest
