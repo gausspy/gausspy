@@ -1,3 +1,5 @@
+import imp
+
 def test_make_science_data():
 
     import numpy as np
@@ -117,7 +119,6 @@ def test_make_train_data():
 
 def test_train():
 
-    import numpy as np
     import gausspy.gp as gp
 
     imp.reload(gp)
@@ -143,7 +144,6 @@ def test_train():
 
 def test_decompose():
 
-    import numpy as np
     import gausspy.gp as gp
     import time
     import pickle
