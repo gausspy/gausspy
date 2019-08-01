@@ -15,7 +15,7 @@ http://www.astro.columbia.edu/~mputman/M33only.fits.gz
 
 
 Storing Data cube in GaussPy-Friendly Format
-----------------------------
+---------------------------------------------
 
 Before decomposing the datacube, we must store the data in a format readable by
 GaussPy. The following code provides an example of how to read a fits-formatted
@@ -179,7 +179,7 @@ possible.
 
 
 Training AGD to Select :math:`\alpha` values
-----------------------------
+---------------------------------------------
 
 With a synthetic training dataset in hand, we train AGD to select two values of
 :math:`\log\alpha` for the two-phase decomposition, :math:`\log\alpha_1` and
@@ -226,7 +226,7 @@ Training: starting with values of :math:`\log\alpha_{1,\rm \, initial}=3` and
 within 90 iterations.
 
 Decomposing the Datacube
-----------------------------
+-------------------------
 
 With the trained values in hand, we now decompose the target dataset:
 
