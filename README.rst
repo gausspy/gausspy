@@ -1,4 +1,4 @@
-.. image:: doc/gausspy.png
+.. image:: docs/gausspy.png
    :width: 600
 
 .. image:: http://readthedocs.org/projects/gausspy-py3/badge/?version=latest
