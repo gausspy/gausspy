@@ -276,9 +276,9 @@ def AGD(
     """ Autonomous Gaussian Decomposition
     """
 
-    if ~isinstance(SNR2_thresh, list):
+    if type(SNR2_thresh) != type([]):
         SNR2_thresh = [SNR2_thresh, SNR2_thresh]
-    if ~isinstance(SNR_thresh, list):
+    if type(SNR_thresh) != type([]):
         SNR_thresh = [SNR_thresh, SNR_thresh]
 
     say("\n  --> AGD() \n", verbose)
