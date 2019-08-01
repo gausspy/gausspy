@@ -6,7 +6,7 @@ Prepping a Datacube
 
 In this example we will download a datacube to decompose into individual
 spectra. The example cube we will use is from the GALFA-HI emission survey at
-the Arecibo Observatory, specifically the `M33 datacube
+the Arecibo Observatory, specifically the `GALFA-HI M33 datacube
 <https://sites.google.com/site/galfahi/data>`_ from `Putman et al. 2009
 <http://adsabs.harvard.edu/abs/2009ApJ...703.1486P>`_. You can directly download
 the cube from here:
