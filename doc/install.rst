@@ -4,12 +4,21 @@
 Installation
 ===============
 
+----------------
+Download GaussPy
+----------------
+
+Download GaussPy using git:
+
+.. code-block:: bash
+
+    git clone git://github.com/gausspy/gausspy.git
+
 ------------
 Dependencies
 ------------
 
-You will need the following packages to run GaussPy. We list the version of each
-package which we know to be compatible with GaussPy.
+You will need the following packages to run GaussPy:
 
 * `Python 3.6+ <https://www.python.org/>`_
 
@@ -17,10 +26,11 @@ package which we know to be compatible with GaussPy.
 
 * `scipy <http://www.scipy.org/>`_
 
+* `h5py <http://www.h5py.org/>`_
+
 * `lmfit <https://lmfit.github.io/lmfit-py/intro.html>`_
 
-If you do not already have Python 3.6, you can install the `Anaconda Scientific
-Python distribution <https://store.continuum.io/cshop/anaconda/>`.
+* `tqdm <https://tqdm.github.io/>`_
 
 ---------------------
 Optional Dependencies
@@ -31,75 +41,47 @@ If you wish to use GaussPy's plotting capabilities you will need to install
 
 * `matplotlib <http://matplotlib.org/>`_
 
-----------------
-Download GaussPy
-----------------
-
-Download GaussPy using git $ git clone git://github.com/gausspy/gausspy.git
-
---------------------------------
-Installing Dependencies on Linux
---------------------------------
-
-Install pip for easy installation of python packages:
-
-.. code-block:: bash
-
-    sudo apt-get install python-pip
-
-Then install the required python packages:
-
-.. code-block:: bash
-
-    sudo pip install scipy numpy lmfit
-
-Install the optional dependencies for plotting:
-
-.. code-block:: bash
-
-    sudo pip install matplotlib
-    
-------------------------------
-Installing Dependencies on OSX
-------------------------------
-
-Installation on OSX can be done easily with homebrew. Install pip for easy
-installation of python packages:
-
-.. code-block:: bash
-
-    sudo easy_install pip
-
-Then install the required python packages:
-
-.. code-block:: bash
-
-    sudo pip install numpy scipy lmfit
-
-Install the optional dependencies for plotting and optimization:
-
-.. code-block:: bash
-
-    sudo pip install matplotlib
-    
-------------------
+---------------------
 Installing GaussPy
-------------------
+---------------------
 
 To install make sure that all dependences are already installed and properly
-linked to python --python has to be able to load them--. Then cd to the local
-directory containing GaussPy and install via
+linked to python --python has to be able to load them--. 
 
-.. code-block:: bash
+One way to achieve this goal is by using Conda. First, install either `Miniconda3 <https://docs.conda.io/en/latest/miniconda.html>`_ 
+(includes basic Conda root environment for Python 3.x, *recommended*) 
+or `Anaconda3 <https://www.anaconda.com/distribution/>`_ 
+(includes more features, tools, libraries for Python 3.x). 
+
+You may wish to create a conda environment for the dependencies before installation. For example, to create an environment called ``gausspy":
+
+.. code-block:: console
+
+     $ conda env create -n gausspy --file conda-environment.yml
+     $ conda activate gausspy
+
+Then install the required dependencies:
+
+.. code-block:: console
+
+     $ conda install -n gausspy numpy scipy lmfit h5py tqdm
+     
+For now, GaussPy relies on lmfit, which can be installed using pip:
+
+.. code-block:: console
+
+     $ pip install lmfit
+     
+After verifying that the required dependencies are installed, 
+return to the local directory containing GaussPy and install it via:
+
+.. code-block:: console
     
-    python setup.py install
-
-If you don't have root access and/or wish a local installation of
-GaussPy then use
-
-.. code-block:: bash
+    $ python setup.py install
     
-    python setup.py install --user
+If you would like to modify GaussPy, you may want to use links instead of
+installing, which is best done by replacing the last line with
 
-change the 'requires' statement in setup.py to include `scipy` and `lmfit`.
+.. code-block:: console
 
+     $ python setup.py develop
