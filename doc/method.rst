@@ -194,17 +194,6 @@ calculating :math:`f(x) + n(x)`
   but it may perform slow for large datasets.
 
 
-* ``GaussianDecomposer.set('mode','C')``: This chooses a ``C``
-  implementation of the TV algorithm when calculating the
-  derivative. It is less time-consuming that the ``Python`` version
-  but comes at the price of intelligibility of some parts of the
-  code. 
-
-  Both ``Python`` and ``C`` modes yield the same results and,
-  therefore, are interchangable. Our suggestion is to use ``Python``
-  if you are planning to delve into the details of the code, and ``C``
-  if you are after efficiency in large dataset.
-
 * ``GaussianDecomposer.set('mode','conv')``: When this mode is set,
   the function is Gaussian-filtered prior to calculating the numerical
   derivative. In this case, the constant :math:`\alpha` is taken to be
