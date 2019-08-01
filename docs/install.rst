@@ -53,7 +53,7 @@ One way to achieve this goal is by using Conda. First, install either `Miniconda
 or `Anaconda3 <https://www.anaconda.com/distribution/>`_ 
 (includes more features, tools, libraries for Python 3.x). 
 
-You may wish to create a conda environment for the dependencies before installation. For example, to create an environment called ``gausspy":
+You may wish to create a conda environment for the dependencies before installation. For example, to create an environment called gausspy:
 
 .. code-block:: console
 
