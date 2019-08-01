@@ -8,6 +8,7 @@ import pickle
 import multiprocessing
 import signal
 import numpy as np
+
 # from . import AGD_decomposer
 from .gp import GaussianDecomposer
 from tqdm import tqdm
@@ -29,18 +30,21 @@ def init(*args):
         [agd_object, agd_data, ilist] = args[0]
     else:
         [agd_object, science_data_path, ilist] = pickle.load(
-            open('batchdecomp_temp.pickle', 'rb'), encoding='latin1')
-        agd_data = pickle.load(open(science_data_path, 'rb'), encoding='latin1')
+            open("batchdecomp_temp.pickle", "rb"), encoding="latin1"
+        )
+        agd_data = pickle.load(open(science_data_path, "rb"), encoding="latin1")
     if ilist is None:
-        ilist = np.arange(len(agd_data['data_list']))
+        ilist = np.arange(len(agd_data["data_list"]))
 
 
 def decompose_one(i):
     print("   ---->  ", i)
-    result = GaussianDecomposer.decompose(agd_object,
-                                          agd_data['x_values'][i],
-                                          agd_data['data_list'][i],
-                                          agd_data['errors'][i])
+    result = GaussianDecomposer.decompose(
+        agd_object,
+        agd_data["x_values"][i],
+        agd_data["data_list"][i],
+        agd_data["errors"][i],
+    )
     return result
 
 
@@ -59,10 +63,15 @@ def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=1):
     """
     # We run the first few iterations serially to catch bugs
     if front_num > 0:
-        front = [function(**a) if use_kwargs else function(a) for a in array[:front_num]]
+        front = [
+            function(**a) if use_kwargs else function(a) for a in array[:front_num]
+        ]
     # If we set n_jobs to 1, just run a list comprehension. This is useful for benchmarking and debugging.
     if n_jobs == 1:
-        return front + [function(**a) if use_kwargs else function(a) for a in tqdm(array[front_num:])]
+        return front + [
+            function(**a) if use_kwargs else function(a)
+            for a in tqdm(array[front_num:])
+        ]
     # Assemble the workers
     with ProcessPoolExecutor(max_workers=n_jobs) as pool:
         # Pass the elements of array into function
@@ -71,10 +80,10 @@ def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=1):
         else:
             futures = [pool.submit(function, a) for a in array[front_num:]]
         kwargs = {
-            'total': len(futures),
-            'unit': 'it',
-            'unit_scale': True,
-            'leave': True
+            "total": len(futures),
+            "unit": "it",
+            "unit_scale": True,
+            "leave": True,
         }
         # Print out the progress as tasks complete
         for f in tqdm(as_completed(futures), **kwargs):
@@ -95,7 +104,7 @@ def func(use_ncpus=None):
     if use_ncpus is None:
         use_ncpus = int(0.75 * ncpus)
     # p = multiprocessing.Pool(ncpus, init_worker)
-    print('using {} out of {} cpus'.format(use_ncpus, ncpus))
+    print("using {} out of {} cpus".format(use_ncpus, ncpus))
     try:
         results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
     except KeyboardInterrupt:
