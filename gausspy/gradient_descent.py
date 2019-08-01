@@ -5,8 +5,6 @@ import multiprocessing
 import numpy as np
 from . import AGD_decomposer
 import signal
-import time
-
 
 def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -22,13 +20,11 @@ def count_ones_in_row(data):
             output[i] = 0
         else:
             total = 1
-            current = 1
             counter = 1
             while data[i - counter] == 1:
                 total += 1
                 if i - counter < 0:
                     break
-                current = data[i - counter]
                 counter += 1
             output[i] = total
     return output
@@ -37,18 +33,19 @@ def count_ones_in_row(data):
 def compare_parameters(guess_params, true_params, verbose=False):
     """ Figure of merit for comparing guesses to true components.
         guess_params = list of 3xN parameters for the N guessed Gaussians
-                     = [amp1, amp2, amp3 ..., width1, width2, width3, ... offset1, offset2, offset3]
+                     = [amp1, amp2, amp3 ..., width1, width2, width3, ...
+                            offset1, offset2, offset3]
         true_params  = list of 3xN parameters for the N true Gaussians """
 
     # Extract parameters
     n_true = len(true_params) // 3
     n_guess = len(guess_params) // 3
     guess_amps = guess_params[0:n_guess]
-    guess_FWHMs = guess_params[n_guess : 2 * n_guess]
-    guess_offsets = guess_params[2 * n_guess : 3 * n_guess]
+    guess_FWHMs = guess_params[n_guess: 2 * n_guess]
+    guess_offsets = guess_params[2 * n_guess: 3 * n_guess]
     true_amps = true_params[0:n_true]
-    true_FWHMs = true_params[n_true : 2 * n_true]
-    true_offsets = true_params[2 * n_true : 3 * n_true]
+    true_FWHMs = true_params[n_true: 2 * n_true]
+    true_offsets = true_params[2 * n_true: 3 * n_true]
 
     truth_matrix = np.zeros([n_true, n_guess], dtype="int")
     # truth_matrix[i,j] = 1 if guess "j" is a correct match to true component "i"
@@ -68,7 +65,7 @@ def compare_parameters(guess_params, true_params, verbose=False):
             ):  # |
 
                 # Check make sure this guess/answer pair in unique
-                if not 1 in np.append(truth_matrix[i, :], truth_matrix[:, j]):
+                if not 1 in np.append(truth_matrix[i,:], truth_matrix[:, j]):
                     truth_matrix[i, j] = 1
 
     # Compute this training example's recall and precision
@@ -108,7 +105,8 @@ def single_training_example(kwargs):
 
     guess_params = result["initial_parameters"]
 
-    return compare_parameters(guess_params, true_params, verbose=kwargs["verbose"])
+    return compare_parameters(guess_params, true_params,
+                                verbose=kwargs["verbose"])
 
 
 def objective_function(
@@ -212,8 +210,8 @@ def train(
     learning_rate
     p = 'Momentum value'
     window_size = trailing window size to determine convergence,
-    iterations_for_convergence = number of continuous iterations within threshold tolerence required to
-                                 acheive convergence
+    iterations_for_convergence = number of continuous iterations
+        within threshold tolerence required to acheive convergence
     """
 
     # Default settings for hyper parameters
@@ -256,7 +254,7 @@ def train(
     vel = training_data["x_values"]
     FWHMs = training_data["fwhms"]
     amps = training_data["amplitudes"]
-    true_params = np.append(amps, np.append(FWHMs, means))
+    # true_params = np.append(amps, np.append(FWHMs, means))
 
     # Initialize book-keeping object
     gd = gradient_descent(iterations)
@@ -411,13 +409,13 @@ def train(
                 )
             )
         else:
-            gd.alpha1means1[i] = np.mean(gd.alpha1_trace[i - window_size : i])
+            gd.alpha1means1[i] = np.mean(gd.alpha1_trace[i - window_size: i])
             gd.alpha1means2[i] = np.mean(
-                gd.alpha1_trace[i - 2 * window_size : i - window_size]
+                gd.alpha1_trace[i - 2 * window_size: i - window_size]
             )
-            gd.alpha2means1[i] = np.mean(gd.alpha2_trace[i - window_size : i])
+            gd.alpha2means1[i] = np.mean(gd.alpha2_trace[i - window_size: i])
             gd.alpha2means2[i] = np.mean(
-                gd.alpha2_trace[i - 2 * window_size : i - window_size]
+                gd.alpha2_trace[i - 2 * window_size: i - window_size]
             )
 
             gd.fracdiff_alpha1[i] = np.abs(gd.alpha1means1[i] - gd.alpha1means2[i])

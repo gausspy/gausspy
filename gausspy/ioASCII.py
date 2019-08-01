@@ -8,17 +8,17 @@ import numpy as np
 
 
 def loadAGDkey(agd_data, key, datapath):
-    """ 
-    Load contents of "filename" into 
-    AGD dataset "agd_data" under key 
+    """
+    Load contents of "filename" into
+    AGD dataset "agd_data" under key
     """
     f = open(datapath + "/" + key)
     while True:
-        l = f.readline()
-        if l == "":
+        line = f.readline()
+        if line == "":
             break
-        l = np.array(l.strip().split(), dtype="float32")
-        agd_data[key] = agd_data[key] + [l]
+        line = np.array(line.strip().split(), dtype="float32")
+        agd_data[key] = agd_data[key] + [line]
 
 
 def fromASCII(dirpath):

@@ -1,7 +1,5 @@
 import os
 import pickle
-import multiprocessing
-import signal
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -197,10 +195,10 @@ class GaussianDecomposer(object):
             ncomps = result["N_components"]
             amps = result["best_fit_parameters"][0:ncomps] if ncomps > 0 else []
             fwhms = (
-                result["best_fit_parameters"][ncomps : 2 * ncomps] if ncomps > 0 else []
+                result["best_fit_parameters"][ncomps: 2 * ncomps] if ncomps > 0 else []
             )
             offsets = (
-                result["best_fit_parameters"][2 * ncomps : 3 * ncomps]
+                result["best_fit_parameters"][2 * ncomps: 3 * ncomps]
                 if ncomps > 0
                 else []
             )
@@ -218,12 +216,12 @@ class GaussianDecomposer(object):
                 else []
             )
             fwhms_initial = (
-                result["initial_parameters"][ncomps_initial : 2 * ncomps_initial]
+                result["initial_parameters"][ncomps_initial: 2 * ncomps_initial]
                 if ncomps_initial > 0
                 else []
             )
             offsets_initial = (
-                result["initial_parameters"][2 * ncomps_initial : 3 * ncomps_initial]
+                result["initial_parameters"][2 * ncomps_initial: 3 * ncomps_initial]
                 if ncomps_initial > 0
                 else []
             )
@@ -237,12 +235,12 @@ class GaussianDecomposer(object):
             rchi2 = [result["rchi2"]] if "rchi2" in result else None
             amps_err = result["best_fit_errors"][0:ncomps] if ncomps_initial > 0 else []
             fwhms_err = (
-                result["best_fit_errors"][ncomps : 2 * ncomps]
+                result["best_fit_errors"][ncomps: 2 * ncomps]
                 if ncomps_initial > 0
                 else []
             )
             offsets_err = (
-                result["best_fit_errors"][2 * ncomps : 3 * ncomps]
+                result["best_fit_errors"][2 * ncomps: 3 * ncomps]
                 if ncomps_initial > 0
                 else []
             )

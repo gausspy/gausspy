@@ -3,7 +3,7 @@
 # Autonomous Gaussian Decomposition
 
 # Standard Libs
-import time, sys, os
+import time
 
 # Standard Third Party
 import numpy as np
@@ -15,7 +15,6 @@ from lmfit import Parameters
 
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
-from mpl_toolkits.axes_grid1 import AxesGrid
 from scipy.ndimage.filters import median_filter, convolve
 
 # Python Regularized derivatives
@@ -38,7 +37,6 @@ def paramvec_to_lmfit(paramvec):
     """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
     ncomps = len(paramvec) // 3
     params = Parameters()
-    counter = 0
     for i in range(len(paramvec)):
         if i < ncomps:
             params.add("p" + str(i + 1), value=paramvec[i], min=0.0)
@@ -56,7 +54,7 @@ def create_fitmask(size, offsets_i, di):
      """
     fitmask = np.zeros(size)
     for i in range(len(offsets_i)):
-        fitmask[int(offsets_i[i] - di[i]) : int(offsets_i[i] + di[i])] = 1.0
+        fitmask[int(offsets_i[i] - di[i]): int(offsets_i[i] + di[i])] = 1.0
     fitmaskw = fitmask == 1.0
     return fitmask, fitmaskw
 
@@ -64,7 +62,7 @@ def create_fitmask(size, offsets_i, di):
 def say(message, verbose=False):
     """ Diagnostic messages
     """
-    if verbose == True:
+    if verbose:
         print(message)
 
 
@@ -177,7 +175,7 @@ def initialGuess(
 
     # Decide on signal threshold
     if not errors:
-        errors = np.std(data[0 : int(BLFrac * data_size)])
+        errors = np.std(data[0: int(BLFrac * data_size)])
 
     thresh = SNR_thresh * errors
     mask1 = np.array(data > thresh, dtype="int")[1:]  # Raw Data S/N
@@ -186,7 +184,7 @@ def initialGuess(
     if SNR2_thresh > 0.0:
         wsort = np.argsort(np.abs(u2))
         RMSD2 = (
-            np.std(u2[wsort[0 : int(0.5 * len(u2))]]) / 0.377
+            np.std(u2[wsort[0: int(0.5 * len(u2))]]) / 0.377
         )  # RMS based in +-1 sigma fluctuations
         say("Second derivative noise: {0}".format(RMSD2), verbose)
         thresh2 = -RMSD2 * SNR2_thresh
@@ -225,9 +223,6 @@ def initialGuess(
 
     #        say('AGD2.initialGuess: No components found for alpha={0}! Returning ([] [] [] [] [])'.format(alpha))
     #        return [], [], [], u2
-
-    # Find points of inflection
-    inflection = np.abs(np.diff(np.sign(u2)))
 
     # Find Relative widths, then measure
     # peak-to-inflection distance for sharpest peak
@@ -281,9 +276,9 @@ def AGD(
     """ Autonomous Gaussian Decomposition
     """
 
-    if type(SNR2_thresh) != type([]):
+    if not isinstance(SNR2_thresh, list):
         SNR2_thresh = [SNR2_thresh, SNR2_thresh]
-    if type(SNR_thresh) != type([]):
+    if not isinstance(SNR_thresh, list):
         SNR_thresh = [SNR_thresh, SNR_thresh]
 
     say("\n  --> AGD() \n", verbose)
@@ -348,7 +343,6 @@ def AGD(
                 len(vel), v_to_i(offsets_g1), widths_g1 / dv / 2.355 * 0.9
             )
             notfitmask = 1 - fitmask
-            notfitmaskw = np.logical_not(fitmaskw)
 
             # Error function for intermediate optimization
             def objectiveD2_leastsq(paramslm):
@@ -417,11 +411,11 @@ def AGD(
     if phase == "two" and (ncomps_g2 > 0):
         amps_gf = np.append(params_g1[0:ncomps_g1], params_g2[0:ncomps_g2])
         widths_gf = np.append(
-            params_g1[ncomps_g1 : 2 * ncomps_g1], params_g2[ncomps_g2 : 2 * ncomps_g2]
+            params_g1[ncomps_g1: 2 * ncomps_g1], params_g2[ncomps_g2: 2 * ncomps_g2]
         )
         offsets_gf = np.append(
-            params_g1[2 * ncomps_g1 : 3 * ncomps_g1],
-            params_g2[2 * ncomps_g2 : 3 * ncomps_g2],
+            params_g1[2 * ncomps_g1: 3 * ncomps_g1],
+            params_g2[2 * ncomps_g2: 3 * ncomps_g2],
         )
         params_gf = np.concatenate([amps_gf, widths_gf, offsets_gf])
         ncomps_gf = len(params_gf) // 3
@@ -433,14 +427,14 @@ def AGD(
     # ----------------------------------
     say("N final parameter guesses: " + str(ncomps_gf))
     amps_temp = params_gf[0:ncomps_gf]
-    widths_temp = params_gf[ncomps_gf : 2 * ncomps_gf]
-    offsets_temp = params_gf[2 * ncomps_gf : 3 * ncomps_gf]
+    widths_temp = params_gf[ncomps_gf: 2 * ncomps_gf]
+    offsets_temp = params_gf[2 * ncomps_gf: 3 * ncomps_gf]
     w_sort_amp = np.argsort(amps_temp)[::-1]
     params_gf = np.concatenate(
         [amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp]]
     )
 
-    if (perform_final_fit == True) and (ncomps_gf > 0):
+    if (perform_final_fit) and (ncomps_gf > 0):
         say("\n\n  --> Final Fitting... \n", verbose)
 
         # Objective functions for final fit
@@ -471,8 +465,8 @@ def AGD(
         # Check if any amplitudes are identically zero, if so, remove them.
         if np.any(params_fit[0:ncomps_gf] == 0):
             amps_fit = params_fit[0:ncomps_gf]
-            fwhms_fit = params_fit[ncomps_gf : 2 * ncomps_gf]
-            offsets_fit = params_fit[2 * ncomps_gf : 3 * ncomps_gf]
+            fwhms_fit = params_fit[ncomps_gf: 2 * ncomps_gf]
+            offsets_fit = params_fit[2 * ncomps_gf: 3 * ncomps_gf]
             w_keep = amps_fit > 0.0
             params_fit = np.concatenate(
                 [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
@@ -567,7 +561,7 @@ def AGD(
     odict["initial_parameters"] = params_gf
     odict["N_components"] = ncomps_gf
 
-    if (perform_final_fit == True) and (ncomps_gf > 0):
+    if (perform_final_fit) and (ncomps_gf > 0):
         odict["best_fit_parameters"] = params_fit
         odict["best_fit_errors"] = params_errs
         odict["rchi2"] = rchi2
