@@ -44,7 +44,7 @@ package which we know to be compatible with GaussPy.
 
 * `lmfit <https://lmfit.github.io/lmfit-py/intro.html>`_
 
-If you do not already have Python 3.6, you can install the `Anaconda Scientific Python distribution`_.
+If you do not already have Python 3.6, you can install the `Anaconda Scientific Python distribution <https://store.continuum.io/cshop/anaconda/>`_.
 
 ---------------------
 Optional Dependencies
@@ -144,7 +144,7 @@ the astropy `contributing`_ and `developer`_ documentation.
 
 Feedback and feature requests?   Is there something missing you would like
 to see?  Please open an issue or send an email to  `@cmurray-astro`.
-GaussPy follows the `Astropy Code of Conduct`_ and strives to provide a
+GaussPy follows the `Astropy Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_ and strives to provide a
 welcoming community to all of our users and contributors.
 
 We love contributions! GaussPy is open source,
@@ -170,17 +170,13 @@ process). Some of these contributions may be the most valuable to the project as
 a whole, because you're coming to the project with fresh eyes, so you can see
 the errors and assumptions that seasoned contributors have glossed over.
 
-*This disclaimer was originally written by
-`Adrienne Lowe <https://github.com/adriennefriend>`_ for a
-`PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
-GaussPy based on its use in the README file for the
-`BEAST project <https://github.com/BEAST-Fitting/beast>`_, and the
-`MetPy project <https://github.com/Unidata/MetPy>`_.*
-
+*This disclaimer was originally written by*
+`Adrienne Lowe <https://github.com/adriennefriend>`_ *for a*
+`PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, *and was adapted by
+GaussPy based on its use in the README file for the*
+`BEAST project <https://github.com/BEAST-Fitting/beast>`_, *and the*
+`MetPy project <https://github.com/Unidata/MetPy>`_.
 
 .. _AstroPy: http://www.astropy.org/
-.. _Anaconda_Scientific_Python_Distribution: <https://store.continuum.io/cshop/anaconda/>`.
 .. _contributing: http://docs.astropy.org/en/stable/index.html#contributing
 .. _developer: http://docs.astropy.org/en/stable/index.html#developer-documentation
-.. _Astropy_Code_of_Conduct:  http://www.astropy.org/about.html#codeofconduct
-
