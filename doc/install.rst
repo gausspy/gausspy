@@ -8,11 +8,11 @@ Installation
 Download GaussPy
 ----------------
 
-Download GaussPy using git:
+Download GaussPy using git (from this fork, which is currently updated to support Python 3.6+):
 
 .. code-block:: bash
 
-    git clone git://github.com/gausspy/gausspy.git
+    git clone git://github.com/cmurray-astro/gausspy.git
 
 ------------
 Dependencies
@@ -80,7 +80,7 @@ return to the local directory containing GaussPy and install it via:
     $ python setup.py install
     
 If you would like to modify GaussPy, you may want to use links instead of
-installing, which is best done by replacing the last line with
+installing, which is best done by replacing the last line with:
 
 .. code-block:: console
 
