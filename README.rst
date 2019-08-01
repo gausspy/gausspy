@@ -44,8 +44,7 @@ package which we know to be compatible with GaussPy.
 
 * `lmfit <https://lmfit.github.io/lmfit-py/intro.html>`_
 
-If you do not already have Python 3.6, you can install the `Anaconda Scientific
-Python distribution <https://store.continuum.io/cshop/anaconda/>`.
+If you do not already have Python 3.6, you can install the `Anaconda Scientific Python distribution`_.
 
 ---------------------
 Optional Dependencies
@@ -180,7 +179,8 @@ GaussPy based on its use in the README file for the
 
 
 .. _AstroPy: http://www.astropy.org/
+.. _Anaconda_Scientific_Python_Distribution: <https://store.continuum.io/cshop/anaconda/>`.
 .. _contributing: http://docs.astropy.org/en/stable/index.html#contributing
 .. _developer: http://docs.astropy.org/en/stable/index.html#developer-documentation
-.. _Astropy Code of Conduct:  http://www.astropy.org/about.html#codeofconduct
+.. _Astropy_Code_of_Conduct:  http://www.astropy.org/about.html#codeofconduct
 
