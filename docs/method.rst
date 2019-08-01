@@ -72,9 +72,9 @@ These 4 constraints then ensure that the point :math:`x^*` is a local
 minimum of the curvature. Furthermore, even in the presence of both
 blending and noise, these expressions will yield the location of all
 the points that are possible candidates for the positions of Gaussian
-components in the target function. Fig. :num:`#curvature` is an
+components in the target function. The following is an
 example of a function defined as the sum of three gaussians for which
-the conditions Eq. :eq:`f0const` - :eq:`f4const` are satisfied and the
+the above conditions are satisfied and the
 local minima of curvature are successfully found, even when blending
 of components is relevant.
 
@@ -98,9 +98,9 @@ Dealing with noise
 ------------------
 
 The numeral problem related to the solution shown in the previous
-section comes from the fact that calculating Eq. :eq:`f2const` -
-:eq:`f4const` is not trivial in the presence of noise. For instance,
-if the top panel of Fig. :num:`#curvature` is sampled with 100
+section comes from the fact that calculating derivatives
+is not trivial in the presence of noise. For instance,
+if the top panel of our example figure is sampled with 100
 channels, and in each panel a random uncorrelated noise component is
 added at the 10% level, a simple finite difference prescription to
 calculate the derivative would lead to variations of the order
@@ -116,7 +116,7 @@ within the noise!
     :alt: alternate text
 
     The top panel shows the same function used in
-    Fig. :num:`#curvature` but now random noise has been added to each
+    the first example figure, but now random noise has been added to each
     channel. In the bottom panel we show various estimates of the
     first derivative. :math:`\alpha=0` corresponds to the finite
     differences method, larger values of :math:`\alpha` makes the
@@ -138,11 +138,11 @@ this is equivalent to find the derivative of the function
 :math:`f(x)`, since we will be minimizing the difference between the
 integral of :math:`u = {\rm d}f(x)/{\rm d}x` and :math:`f(x)`
 itself. This, however, has the problem we discussed in the previous
-paragraph. Fig. :num:`#deriv` shows this case, it is clear that this
+paragraph. It is clear that this
 simple approach fails to recover the behavior of the target
-function. If, on the other hand, :math:`\alpha > 0` an additional
-weight is added to the inverse problem in Eq. :eq:`deriv`, now the
-differences between successive points in :math:`u(x)` are taken into
+function. If, on the other hand, :math:`\alpha > 0`, an additional
+weight is added to the inverse problem in the equation for :math:`R[u]`, 
+and now the differences between successive points in :math:`u(x)` are taken into
 account. 
 
 The parameter :math:`\alpha` then controls how smooth the derivative
