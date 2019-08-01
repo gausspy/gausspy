@@ -42,7 +42,7 @@ the following assumptions:
 
 4. ``RMS = 0.05``
 
-In Fig. :num:`#simple-gaussian` we display the spectrum with the single Gaussian
+In the following figure we display the spectrum with the single Gaussian
 described above.
 
 .. _simple-gaussian:
