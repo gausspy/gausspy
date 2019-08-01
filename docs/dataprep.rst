@@ -6,7 +6,7 @@ Prepping a Datacube
 
 In this example we will download a datacube to decompose into individual
 spectra. The example cube we will use is from the GALFA-HI emission survey at
-the Arecibo Observatory, specifically the `M33 datacube
+the Arecibo Observatory, specifically the `GALFA-HI M33 datacube
 <https://sites.google.com/site/galfahi/data>`_ from `Putman et al. 2009
 <http://adsabs.harvard.edu/abs/2009ApJ...703.1486P>`_. You can directly download
 the cube from here:
@@ -15,7 +15,7 @@ http://www.astro.columbia.edu/~mputman/M33only.fits.gz
 
 
 Storing Data cube in GaussPy-Friendly Format
-----------------------------
+---------------------------------------------
 
 Before decomposing the datacube, we must store the data in a format readable by
 GaussPy. The following code provides an example of how to read a fits-formatted
@@ -179,7 +179,7 @@ possible.
 
 
 Training AGD to Select :math:`\alpha` values
-----------------------------
+---------------------------------------------
 
 With a synthetic training dataset in hand, we train AGD to select two values of
 :math:`\log\alpha` for the two-phase decomposition, :math:`\log\alpha_1` and
@@ -226,7 +226,7 @@ Training: starting with values of :math:`\log\alpha_{1,\rm \, initial}=3` and
 within 90 iterations.
 
 Decomposing the Datacube
-----------------------------
+-------------------------
 
 With the trained values in hand, we now decompose the target dataset:
 
@@ -308,7 +308,7 @@ how well the decomposition went.
 
     plt.show()
 
-Fig. :num:`#cube-decomposed` displays an example set of spectra from the data
+The following figure displays an example set of spectra from the data
 cube and the GaussPy decomposition using trained values of :math:`\log\alpha_1=2.87`
 and :math:`\log\alpha_2=10.61`.
 

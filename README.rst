@@ -1,4 +1,4 @@
-.. image:: doc/gausspy.png
+.. image:: docs/gausspy.png
    :width: 600
 
 .. image:: http://readthedocs.org/projects/gausspy-py3/badge/?version=latest
@@ -25,8 +25,8 @@ The full details of AGD can be found in `Lindner et al. (2015) <https://arxiv.or
 Documentation
 ===============
 
-Details of installing, running, and contributing to the BEAST are at
-<http://beast.readthedocs.io>.
+Details of installing, running, and contributing to the GaussPy are at
+<http://gausspy-py3.readthedocs.io>.
 
 ===============
 Contributing
