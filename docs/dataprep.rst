@@ -308,7 +308,7 @@ how well the decomposition went.
 
     plt.show()
 
-Fig. :num:`#cube-decomposed` displays an example set of spectra from the data
+The following figure displays an example set of spectra from the data
 cube and the GaussPy decomposition using trained values of :math:`\log\alpha_1=2.87`
 and :math:`\log\alpha_2=10.61`.
 
