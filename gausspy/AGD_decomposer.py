@@ -36,7 +36,7 @@ def errs_vec_from_lmfit(lmfit_params):
 
 def paramvec_to_lmfit(paramvec):
     """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
-    ncomps = len(paramvec) / 3
+    ncomps = len(paramvec) // 3
     params = Parameters()
     counter = 0
     for i in range(len(paramvec)):
@@ -81,7 +81,7 @@ def func(x, *args):
     Parameter vector kargs = [amp1, ..., ampN, width1, ..., widthN, mean1, ..., meanN],
     and therefore has len(args) = 3 x N_components.
     """
-    ncomps = len(args) / 3
+    ncomps = len(args) // 3
     yout = x * 0.0
     for i in range(ncomps):
         yout = yout + gaussian(args[i], args[i + ncomps], args[i + 2 * ncomps])(x)
@@ -94,7 +94,7 @@ def initialGuess(
     errors=None,
     alpha=None,
     plot=False,
-    mode="conv",
+    mode="python",
     verbose=False,
     SNR_thresh=5.0,
     BLFrac=0.1,
@@ -244,7 +244,7 @@ def initialGuess(
                 FF_matrix[i, j] = np.exp(
                     -(offsets[i] - offsets[j]) ** 2 / 2.0 / (FWHMs[j] / 2.355) ** 2
                 )
-        amps_new = lstsq(FF_matrix, amps)[0]
+        amps_new = lstsq(FF_matrix, amps, rcond=None)[0]
         if np.all(amps_new > 0):
             amps = amps_new
 
@@ -269,7 +269,7 @@ def AGD(
     alpha1=None,
     alpha2=None,
     plot=False,
-    mode="c",
+    mode="python",
     verbose=False,
     SNR_thresh=5.0,
     BLFrac=0.1,
@@ -319,7 +319,7 @@ def AGD(
         agd1["u2"],
     )
     params_g1 = np.append(np.append(amps_g1, widths_g1), offsets_g1)
-    ncomps_g1 = len(params_g1) / 3
+    ncomps_g1 = len(params_g1) // 3
     ncomps_g2 = 0  # Default
     ncomps_f1 = 0  # Default
 
@@ -328,7 +328,7 @@ def AGD(
     # ----------------------------#
     if phase == "two":
         say("Beginning phase-two AGD... ", verbose)
-        ncomps_g2 = 0.0
+        ncomps_g2 = 0
 
         # ----------------------------------------------------------#
         # Produce the residual signal                               #
@@ -365,12 +365,12 @@ def AGD(
             lmfit_params = paramvec_to_lmfit(params_g1)
             result = lmfit_minimize(objectiveD2_leastsq, lmfit_params, method="leastsq")
             params_f1 = vals_vec_from_lmfit(result.params)
-            ncomps_f1 = len(params_f1) / 3
+            ncomps_f1 = len(params_f1) // 3
 
-            # Make "FWHMS" positive
-            params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0] = (
-                -1 * params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0]
-            )
+            # # Make "FWHMS" positive
+            # params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0] = (
+            #     -1 * params_f1[0:ncomps_f1][params_f1[0:ncomps_f1] < 0.0]
+            # )
 
             del lmfit_params
             say("LMFIT fit took {0} seconds.".format(time.time() - t0))
@@ -424,10 +424,10 @@ def AGD(
             params_g2[2 * ncomps_g2 : 3 * ncomps_g2],
         )
         params_gf = np.concatenate([amps_gf, widths_gf, offsets_gf])
-        ncomps_gf = len(params_gf) / 3
+        ncomps_gf = len(params_gf) // 3
     else:
         params_gf = params_g1
-        ncomps_gf = len(params_gf) / 3
+        ncomps_gf = len(params_gf) // 3
 
     # Sort final guess list by amplitude
     # ----------------------------------
@@ -455,21 +455,21 @@ def AGD(
         result2 = lmfit_minimize(objective_leastsq, lmfit_params, method="leastsq")
         params_fit = vals_vec_from_lmfit(result2.params)
         params_errs = errs_vec_from_lmfit(result2.params)
-        ncomps_fit = len(params_fit) / 3
+        ncomps_fit = len(params_fit) // 3
 
         del lmfit_params
         say("Final fit took {0} seconds.".format(time.time() - t0), verbose)
 
-        # Make "FWHMS" positive
-        params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0] = (
-            -1 * params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0]
-        )
+        # # Make "FWHMS" positive
+        # params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0] = (
+        #     -1 * params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0]
+        # )
 
         best_fit_final = func(vel, *params_fit).ravel()
         rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
 
         # Check if any amplitudes are identically zero, if so, remove them.
-        if np.any(params_fit[0:ncomps_gf] == 0.0):
+        if np.any(params_fit[0:ncomps_gf] == 0):
             amps_fit = params_fit[0:ncomps_gf]
             fwhms_fit = params_fit[ncomps_gf : 2 * ncomps_gf]
             offsets_fit = params_fit[2 * ncomps_gf : 3 * ncomps_gf]
@@ -477,7 +477,7 @@ def AGD(
             params_fit = np.concatenate(
                 [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
             )
-            ncomps_fit = len(params_fit) / 3
+            ncomps_fit = len(params_fit) // 3
 
     if plot:
         #                       P L O T T I N G

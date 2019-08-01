@@ -41,8 +41,8 @@ def compare_parameters(guess_params, true_params, verbose=False):
         true_params  = list of 3xN parameters for the N true Gaussians """
 
     # Extract parameters
-    n_true = len(true_params) / 3
-    n_guess = len(guess_params) / 3
+    n_true = len(true_params) // 3
+    n_guess = len(guess_params) // 3
     guess_amps = guess_params[0:n_guess]
     guess_FWHMs = guess_params[n_guess : 2 * n_guess]
     guess_offsets = guess_params[2 * n_guess : 3 * n_guess]
@@ -104,7 +104,7 @@ def single_training_example(kwargs):
     # If nothing was found, skip to next iteration
     if status == 0:
         print("Nothing found in this spectrum,  continuing...")
-        return 0, 0, true_params / 3
+        return 0, 0, true_params // 3
 
     guess_params = result["initial_parameters"]
 
@@ -204,14 +204,14 @@ def train(
     mode="python",
 ):
     """
-    alpha1_initial = 
-    alpha2_initial = 
-    iterations = 
+    alpha1_initial =
+    alpha2_initial =
+    iterations =
     MAD = mean absolute difference
     eps = 'epsilson; finite offset for computing derivatives in gradient'
     learning_rate
     p = 'Momentum value'
-    window_size = trailing window size to determine convergence, 
+    window_size = trailing window size to determine convergence,
     iterations_for_convergence = number of continuous iterations within threshold tolerence required to
                                  acheive convergence
     """
@@ -226,7 +226,7 @@ def train(
             MAD = 0.3
         if not p:
             p = 0.8
-    elif (mode == "c") or (mode == "python"):
+    elif mode == "python":
         if not learning_rate:
             learning_rate = 0.9
         if not eps:

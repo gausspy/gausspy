@@ -25,7 +25,7 @@ class GaussianDecomposer(object):
                 "SNR2_thresh": 5.0,
                 "SNR_thresh": 5.0,
                 "deblend": True,
-                "mode": "c",
+                "mode": "python",
                 "BLFrac": 0.1,
                 "verbose": False,
                 "plot": False,
@@ -47,7 +47,7 @@ class GaussianDecomposer(object):
         alpha2_initial=None,
         plot=False,
         verbose=False,
-        mode="c",
+        mode="python",
         learning_rate=0.9,
         eps=0.25,
         MAD=0.1,
@@ -211,7 +211,7 @@ class GaussianDecomposer(object):
             output_data["index_fit"].append([i for j in range(ncomps)])
 
             # Save initial guesses if something was found
-            ncomps_initial = len(result["initial_parameters"]) / 3
+            ncomps_initial = len(result["initial_parameters"]) // 3
             amps_initial = (
                 result["initial_parameters"][0:ncomps_initial]
                 if ncomps_initial > 0

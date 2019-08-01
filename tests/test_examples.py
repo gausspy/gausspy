@@ -1,6 +1,5 @@
 import imp
 
-
 def test_make_science_data():
 
     import numpy as np
@@ -184,3 +183,12 @@ def test_remove_files():
 
     for file_to_remove in files_to_remove:
         os.system("rm -rf " + file_to_remove)
+
+def main():
+    test_make_science_data()
+    test_make_train_data()
+    test_train()
+    test_decompose()
+
+if __name__ == "__main__":
+    main()
