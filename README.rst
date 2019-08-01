@@ -14,16 +14,15 @@ GaussPy
     :target: https://coveralls.io/github/cmurray-astro/gausspy?branch=master
     :alt: Coverage Status
 
-
 .. image:: http://img.shields.io/badge/arXiv-1409.2840-orange.svg?style=flat
     :target: https://arxiv.org/abs/1409.2840
     :alt: arXiv paper
 
-A python tool for implementing the Autonomous Gaussian Decomposition algorithm.
+A python tool for implementing the Autonomous Gaussian Decomposition (AGD) algorithm.
 
 Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
 
-[Lindner et al. 2015](https://arxiv.org/abs/1409.2840)
+The full details of AGD can be found in `Lindner et al. (2015) <https://arxiv.org/abs/1409.2840>`_
 
 
 ===============
