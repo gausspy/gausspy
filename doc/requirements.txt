@@ -1,0 +1,9 @@
+astropy-helpers
+sphinx
+gitpython
+sphinx-astropy
+astropy
+matplotlib
+numpy
+scipy
+lmfit
