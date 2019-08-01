@@ -13,7 +13,7 @@
     :target: https://coveralls.io/github/cmurray-astro/gausspy?branch=master
     :alt: Coverage Status
 
-.. image:: http://img.shields.io/badge/arXiv-1409.2840-orange.svg?style=flat
+.. image:: http://img.shields.io/badge/arXiv-1409.2840-skyblue.svg?style=flat
     :target: https://arxiv.org/abs/1409.2840
     :alt: arXiv paper
 
