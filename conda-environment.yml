@@ -2,7 +2,6 @@ channels:
   - defaults
 dependencies:
   - pip
-  - astropy
   - numpy
   - scipy
   - matplotlib
