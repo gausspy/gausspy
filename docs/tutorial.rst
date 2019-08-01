@@ -221,7 +221,7 @@ The following is an example python script for plotting the original spectrum and
     plt.show()
 
 
-Fig. :num:`#simple-gaussian-decomposed` displays the results of the
+The following figure displays the results of the
 decomposition using the above example python code. Clearly the fit to the simple
 Gaussian spectrum is good. If we were to vary the value of :math:`\log\alpha`, the
 fit would not change significantly as the fit to a spectrum containing a single
@@ -322,8 +322,7 @@ with the above parameters and store it in GaussPy-friendly format.
 
     pickle.dump(data, open(FILENAME, 'w'))
 
-A plot of the spectrum constructed above is included in Fig.
-:num:`#multiple-gaussians`.
+A plot of the spectrum constructed above is included below:
 
 .. _multiple-gaussians:
 
@@ -384,8 +383,7 @@ Plot Decomposition Results
 ----------------------------
 
 Following the decomposition by GaussPy, we can explore the effect of the choice
-of :math:`\alpha` on the decomposition. In Fig.
-:num:`#multiple-gaussians-decomposed`, we have run GaussPy on the
+of :math:`\alpha` on the decomposition. In the following figure, we have run GaussPy on the
 multiple-Gaussian dataset constructed above for three values of :math:`\alpha`,
 including :math:`\log\alpha=0.5, \log\alpha = 2.5` and :math:`\log\alpha=1.5` and plotted the
 results.
@@ -623,7 +621,7 @@ accuracy of 68.4%. As in the :ref:`simple-example-tutorial` and
     # Save decomposition information
     pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'w'))
 
-Fig. :num:`#multiple-gaussians-trained-decomposed` displays the result of
+The following figure displays the result of
 fitting the "Multiple Gaussians" spectrum with a trained value of
 :math:`\log\alpha=1.58`.
 
