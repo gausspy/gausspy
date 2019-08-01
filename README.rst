@@ -25,8 +25,8 @@ The full details of AGD can be found in `Lindner et al. (2015) <https://arxiv.or
 Documentation
 ===============
 
-Details of installing, running, and contributing to the BEAST are at
-<http://beast.readthedocs.io>.
+Details of installing, running, and contributing to the GaussPy are at
+<http://gausspypy3.readthedocs.io>.
 
 ===============
 Contributing
