@@ -4,6 +4,7 @@ dependencies:
   - pip
   - numpy
   - scipy
+  - h5py
   - matplotlib
   - pip:
     - lmfit
