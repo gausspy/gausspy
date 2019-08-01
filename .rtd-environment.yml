@@ -1,0 +1,14 @@
+name: gausspy
+
+channels:
+    - astropy
+
+dependencies:
+    - python>=3.6
+    - astropy
+    - matplotlib
+    - numpy
+    - scipy
+    - sphinx-astropy
+  - pip:
+      - lmfit
