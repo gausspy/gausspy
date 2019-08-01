@@ -22,7 +22,7 @@ env:
         
 os: 
   - osx
-  - linux
+  #- linux
 
 
 install:
