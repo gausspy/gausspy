@@ -1,4 +1,6 @@
 # GaussPy
+[![Build Status](https://travis-ci.org/cmurray-astro/gausspy.svg?branch=master)](https://travis-ci.org/cmurray-astro/gausspy)
+
 A python tool for implementing the Autonomous Gaussian Decomposition algorithm.
 
 Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
