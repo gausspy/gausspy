@@ -10,5 +10,5 @@ dependencies:
     - numpy
     - scipy
     - sphinx-astropy
-  - pip:
-      - lmfit
+    - pip:
+        - lmfit
