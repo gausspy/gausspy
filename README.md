@@ -16,30 +16,23 @@ New! The GaussPy documentation can be found on ReadTheDocs [here](http://gausspy
 You will need the following packages to run GaussPy. We list the version of each
 package which we know to be compatible with GaussPy.
 
-* [python 2.7](http://www.numpy.org/)
+* [python 3.6] or later
 
-* [numpy (v1.12.1)](http://www.numpy.org/)
+* [numpy](http://www.numpy.org/)
 
-* [scipy (v0.17.0)](http://www.scipy.org/)
+* [scipy](http://www.scipy.org/)
 
-* [lmfit (v0.9.3)](https://lmfit.github.io/lmfit-py/intro.html)
+* [lmfit](https://lmfit.github.io/lmfit-py/intro.html)
 
-* [h5py (v2.0.1)](http://www.h5py.org/)
-
-If you do not already have Python 2.7, you can install the [Anaconda Scientific
-Python distribution](https://store.continuum.io/cshop/anaconda/), which comes
-pre-loaded with numpy, scipy, and h5py.
+If you do not already have Python 3.6, you can install the [Anaconda Scientific
+Python distribution](https://store.continuum.io/cshop/anaconda/).
 
 ### Optional Dependencies
 
 If you wish to use GaussPy's plotting capabilities you will need to install
 matplotlib:
 
-* [matplotlib (v1.1.1)](http://matplotlib.org/)
-
-If you wish to use optimization with Fortran code you will need
-
-* [GNU Scientific Library (GSL)](http://www.gnu.org/software/gsl/)
+* [matplotlib](http://matplotlib.org/)
 
 
 ### Download GaussPy
@@ -48,14 +41,6 @@ Download GaussPy using git `$ git clone git://github.com/gausspy/gausspy.git`
 
 
 ### Installing Dependencies on Linux
-
-You will need several libraries which the `GSL`, `h5py`, and `scipy` libraries
-depend on. Install these required packages with:
-
-```bash
-sudo apt-get install libblas-dev liblapack-dev gfortran libgsl0-dev libhdf5-serial-dev 
-sudo apt-get install hdf5-tools
-```
 
 Install pip for easy installation of python packages:
 
@@ -66,14 +51,13 @@ sudo apt-get install python-pip
 Then install the required python packages:
 
 ```bash
-sudo pip install scipy numpy h5py lmfit
+sudo pip install scipy numpy lmfit
 ```
 
-Install the optional dependencies for plotting and optimization:
+Install the optional dependencies for plotting:
 
 ```bash
 sudo pip install matplotlib
-sudo apt-get install libgsl0-dev
 ```
 
 ### Installing Dependencies on OSX
@@ -88,14 +72,13 @@ sudo easy_install pip
 Then install the required python packages:
 
 ```bash
-sudo pip install numpy scipy h5py lmfit
+sudo pip install numpy scipy lmfit
 ```
 
-Install the optional dependencies for plotting and optimization:
+Install the optional dependencies for plotting:
 
 ```bash
 sudo pip install matplotlib
-sudo brew install gsl
 ``` 
 
 ### Installing GaussPy
