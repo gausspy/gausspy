@@ -16,7 +16,7 @@ New! The GaussPy documentation can be found on ReadTheDocs [here](http://gausspy
 You will need the following packages to run GaussPy. We list the version of each
 package which we know to be compatible with GaussPy.
 
-* [python 3.6] or later
+* [Python 3.6+](https://www.python.org/)
 
 * [numpy](http://www.numpy.org/)
 
