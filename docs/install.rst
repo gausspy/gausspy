@@ -65,13 +65,8 @@ Then install the required dependencies:
 .. code-block:: console
 
      $ conda install -n gausspy numpy scipy h5py 
-     $ conda install -n gausspy -c conda-forge tqdm
+     $ conda install -n gausspy -c conda-forge tqdm lmfit
      
-For now, GaussPy relies on lmfit, which can be installed using pip:
-
-.. code-block:: console
-
-     $ pip install lmfit
      
 After verifying that the required dependencies are installed, 
 return to the local directory containing GaussPy and install it via:
