@@ -7,10 +7,8 @@ if "%SPHINXBUILD%" == "" (
 )
 set BUILDDIR=_build
 set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% .
-set I18NSPHINXOPTS=%SPHINXOPTS% .
 if NOT "%PAPER%" == "" (
 	set ALLSPHINXOPTS=-D latex_paper_size=%PAPER% %ALLSPHINXOPTS%
-	set I18NSPHINXOPTS=-D latex_paper_size=%PAPER% %I18NSPHINXOPTS%
 )
 
 if "%1" == "" goto help
@@ -30,11 +28,7 @@ if "%1" == "help" (
 	echo.  latex      to make LaTeX files, you can set PAPER=a4 or PAPER=letter
 	echo.  text       to make text files
 	echo.  man        to make manual pages
-	echo.  texinfo    to make Texinfo files
-	echo.  gettext    to make PO message catalogs
 	echo.  changes    to make an overview over all changed/added/deprecated items
-	echo.  xml        to make Docutils-native XML files
-	echo.  pseudoxml  to make pseudoxml-XML files for display purposes
 	echo.  linkcheck  to check all external links for integrity
 	echo.  doctest    to run all doctests embedded in the documentation if enabled
 	goto end
@@ -43,21 +37,9 @@ if "%1" == "help" (
 if "%1" == "clean" (
 	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
 	del /q /s %BUILDDIR%\*
+	del /q /s api
+	del /q /s generated
 	goto end
-)
-
-
-%SPHINXBUILD% 2> nul
-if errorlevel 9009 (
-	echo.
-	echo.The 'sphinx-build' command was not found. Make sure you have Sphinx
-	echo.installed, then set the SPHINXBUILD environment variable to point
-	echo.to the full path of the 'sphinx-build' executable. Alternatively you
-	echo.may add the Sphinx directory to PATH.
-	echo.
-	echo.If you don't have Sphinx installed, grab it from
-	echo.http://sphinx-doc.org/
-	exit /b 1
 )
 
 if "%1" == "html" (
@@ -115,9 +97,9 @@ if "%1" == "qthelp" (
 	echo.
 	echo.Build finished; now you can run "qcollectiongenerator" with the ^
 .qhcp project file in %BUILDDIR%/qthelp, like this:
-	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\GaussPy.qhcp
+	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\Astropy.qhcp
 	echo.To view the help file:
-	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\GaussPy.ghc
+	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\Astropy.ghc
 	goto end
 )
 
@@ -145,26 +127,6 @@ if "%1" == "latex" (
 	goto end
 )
 
-if "%1" == "latexpdf" (
-	%SPHINXBUILD% -b latex %ALLSPHINXOPTS% %BUILDDIR%/latex
-	cd %BUILDDIR%/latex
-	make all-pdf
-	cd %BUILDDIR%/..
-	echo.
-	echo.Build finished; the PDF files are in %BUILDDIR%/latex.
-	goto end
-)
-
-if "%1" == "latexpdfja" (
-	%SPHINXBUILD% -b latex %ALLSPHINXOPTS% %BUILDDIR%/latex
-	cd %BUILDDIR%/latex
-	make all-pdf-ja
-	cd %BUILDDIR%/..
-	echo.
-	echo.Build finished; the PDF files are in %BUILDDIR%/latex.
-	goto end
-)
-
 if "%1" == "text" (
 	%SPHINXBUILD% -b text %ALLSPHINXOPTS% %BUILDDIR%/text
 	if errorlevel 1 exit /b 1
@@ -178,22 +140,6 @@ if "%1" == "man" (
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Build finished. The manual pages are in %BUILDDIR%/man.
-	goto end
-)
-
-if "%1" == "texinfo" (
-	%SPHINXBUILD% -b texinfo %ALLSPHINXOPTS% %BUILDDIR%/texinfo
-	if errorlevel 1 exit /b 1
-	echo.
-	echo.Build finished. The Texinfo files are in %BUILDDIR%/texinfo.
-	goto end
-)
-
-if "%1" == "gettext" (
-	%SPHINXBUILD% -b gettext %I18NSPHINXOPTS% %BUILDDIR%/locale
-	if errorlevel 1 exit /b 1
-	echo.
-	echo.Build finished. The message catalogs are in %BUILDDIR%/locale.
 	goto end
 )
 
@@ -220,22 +166,6 @@ if "%1" == "doctest" (
 	echo.
 	echo.Testing of doctests in the sources finished, look at the ^
 results in %BUILDDIR%/doctest/output.txt.
-	goto end
-)
-
-if "%1" == "xml" (
-	%SPHINXBUILD% -b xml %ALLSPHINXOPTS% %BUILDDIR%/xml
-	if errorlevel 1 exit /b 1
-	echo.
-	echo.Build finished. The XML files are in %BUILDDIR%/xml.
-	goto end
-)
-
-if "%1" == "pseudoxml" (
-	%SPHINXBUILD% -b pseudoxml %ALLSPHINXOPTS% %BUILDDIR%/pseudoxml
-	if errorlevel 1 exit /b 1
-	echo.
-	echo.Build finished. The pseudo-XML files are in %BUILDDIR%/pseudoxml.
 	goto end
 )
 
