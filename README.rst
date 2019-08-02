@@ -19,6 +19,8 @@
 
 A python tool for implementing the Autonomous Gaussian Decomposition (AGD) algorithm.
 
+**Authors**: Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, Elijah Bernstein-Cooper
+
 The full details of AGD can be found in `Lindner et al. (2015) <https://arxiv.org/abs/1409.2840>`_
 
 ===============
@@ -32,13 +34,6 @@ Details of installing, running, and contributing to the GaussPy are at
 Contributing
 ===============
 
-GaussPy contributors since 2014:
-Robert R. Lindner, Carlos Vera-Ciro, Claire E. Murray, 
-Elijah Bernstein-Cooper, James Dempsey, Manuel Riener.
-
-
-How to Contribute
------------------
 
 Please open a new issue or new pull request for bugs, feedback, or new features
 you would like to see.   If there is an issue you would like to work on, please
