@@ -181,3 +181,11 @@ def test_remove_files():
 
     for file_to_remove in files_to_remove:
         os.system("rm -rf " + file_to_remove)
+
+def main():
+    print('bop')
+    test_make_train_data()
+    test_train()
+
+if __name__ == '__main__':
+    main()
