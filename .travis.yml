@@ -21,7 +21,7 @@ stage: Comprehensive tests
 
 stages:
    # Do the style check and a single test job, don't proceed if it fails
-   # - name: Initial tests
+   - name: Initial tests
    # Test docs, astropy dev, and without optional dependencies
    - name: Comprehensive tests
    # These will only run when cron is opted in
