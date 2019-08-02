@@ -1,8 +1,8 @@
+
 version: 1
 
 python:
   version: 3.6
   install:
      - requirements: docs/requirements.txt
-     - method: pip
-       path: .
+     setup_py_install: true
