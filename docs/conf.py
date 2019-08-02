@@ -30,9 +30,9 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.imgmath',
-    #'sphinx.ext.mathjax',
+    'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
-    #'numfig'
+    'numfig'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
