@@ -1,4 +1,4 @@
-import imp
+# import imp
 
 def test_make_science_data():
 
@@ -121,7 +121,7 @@ def test_train():
 
     import gausspy.gp as gp
 
-    imp.reload(gp)
+    # imp.reload(gp)
 
     TRAINING_DATA = "agd_data_train.pickle"
 
@@ -148,7 +148,7 @@ def test_decompose():
     import time
     import pickle
 
-    imp.reload(gp)
+    # imp.reload(gp)
 
     SCIENCE_DATA = "agd_data_science.pickle"
 
@@ -181,11 +181,3 @@ def test_remove_files():
 
     for file_to_remove in files_to_remove:
         os.system("rm -rf " + file_to_remove)
-
-def main():
-    print('bop')
-    test_make_train_data()
-    test_train()
-
-if __name__ == '__main__':
-    main()
