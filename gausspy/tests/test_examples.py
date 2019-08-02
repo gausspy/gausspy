@@ -116,8 +116,7 @@ def test_make_train_data():
     pickle.dump(agd_data, open(FILENAME, "wb"))
     print("Created: ", FILENAME)
 
-
-def test_train():
+def _test_train():
 
     import gausspy.gp as gp
 
@@ -142,7 +141,7 @@ def test_train():
     # g.train(alpha1_initial = 1., alpha2_initial = 3.)
 
 
-def test_decompose():
+def test_onephase_decompose_python():
 
     import gausspy.gp as gp
     import time
@@ -154,18 +153,88 @@ def test_decompose():
 
     g = gp.GaussianDecomposer()
 
-    # Two phase
-    g.set("phase", "two")
+    # Set defaults
+    g.set("SNR_thresh", 5.0)
+    g.set("alpha1", 1.02)
+    g.set("phase", "one")
+    g.set("mode", "python")
+
+    t0 = time.time()
+    new_data = g.batch_decomposition(SCIENCE_DATA)
+    print("Elapsed time [s]: ", int(time.time() - t0))
+    #pickle.dump(new_data, open("agd_data_science_decomposed.pickle", "wb"))
+
+def test_onephase_decompose_conv():
+
+    import gausspy.gp as gp
+    import time
+    import pickle
+
+    # imp.reload(gp)
+
+    SCIENCE_DATA = "agd_data_science.pickle"
+
+    g = gp.GaussianDecomposer()
+
+    # Set defaults
+    g.set("SNR_thresh", 5.0)
+    g.set("alpha1", 1.02)
+    g.set("phase", "one")
+    g.set("mode", "conv")
+
+    t0 = time.time()
+    new_data = g.batch_decomposition(SCIENCE_DATA)
+    print("Elapsed time [s]: ", int(time.time() - t0))
+    #pickle.dump(new_data, open("agd_data_science_decomposed.pickle", "wb"))
+
+def test_twophase_decompose_python():
+
+    import gausspy.gp as gp
+    import time
+    import pickle
+
+    # imp.reload(gp)
+
+    SCIENCE_DATA = "agd_data_science.pickle"
+
+    g = gp.GaussianDecomposer()
+
+    # Set defaults
     g.set("SNR_thresh", 5.0)
     g.set("SNR2_thresh", 5.0)
     g.set("alpha1", 1.02)
     g.set("alpha2", 2.22)
+    g.set("phase", "two")
+    g.set("mode", "python")
 
     t0 = time.time()
     new_data = g.batch_decomposition(SCIENCE_DATA)
     print("Elapsed time [s]: ", int(time.time() - t0))
 
-    pickle.dump(new_data, open("agd_data_science_decomposed.pickle", "wb"))
+def test_twophase_decompose_conv():
+
+    import gausspy.gp as gp
+    import time
+    import pickle
+
+    # imp.reload(gp)
+
+    SCIENCE_DATA = "agd_data_science.pickle"
+
+    g = gp.GaussianDecomposer()
+
+    # Set defaults
+    g.set("SNR_thresh", 5.0)
+    g.set("SNR2_thresh", 5.0)
+    g.set("alpha1", 1.02)
+    g.set("alpha2", 2.22)
+    g.set("phase", "two")
+    g.set("mode", "conv")
+
+    t0 = time.time()
+    new_data = g.batch_decomposition(SCIENCE_DATA)
+    print("Elapsed time [s]: ", int(time.time() - t0))
+
 
 
 def test_remove_files():
@@ -175,7 +244,7 @@ def test_remove_files():
     files_to_remove = [
         "agd_data_science.pickle",
         "agd_data_train.pickle",
-        "agd_data_science_decomposed.pickle",
+        # "agd_data_science_decomposed.pickle",
         "batchdecomp_temp.pickle",
     ]
 

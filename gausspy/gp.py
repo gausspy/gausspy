@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import numpy as np
 
 from . import AGD_decomposer
@@ -26,7 +26,7 @@ class GaussianDecomposer(object):
                 "mode": "python",
                 "BLFrac": 0.1,
                 "verbose": False,
-                "plot": False,
+                # "plot": False,
                 "perform_final_fit": True,
             }
 
@@ -43,7 +43,7 @@ class GaussianDecomposer(object):
         self,
         alpha1_initial=None,
         alpha2_initial=None,
-        plot=False,
+        # plot=False,
         verbose=False,
         mode="python",
         learning_rate=0.9,
@@ -74,7 +74,7 @@ class GaussianDecomposer(object):
             phase=self.p["phase"],
             SNR_thresh=self.p["SNR_thresh"],
             SNR2_thresh=self.p["SNR2_thresh"],
-            plot=plot,
+            # plot=plot,
             eps=eps,
             verbose=verbose,
             mode=mode,
@@ -116,7 +116,7 @@ class GaussianDecomposer(object):
             SNR2_thresh=self.p["SNR2_thresh"],
             deblend=self.p["deblend"],
             perform_final_fit=self.p["perform_final_fit"],
-            plot=self.p["plot"],
+            # plot=self.p["plot"],
         )
         return results
 
@@ -253,69 +253,69 @@ class GaussianDecomposer(object):
         print("100 finished.%")
         return output_data
 
-    def plot_components(
-        self,
-        data,
-        index,
-        xlabel="x",
-        ylabel="y",
-        xlim=None,
-        ylim=None,
-        guesses=False,
-        plot_true=False,
-    ):
-        # Extract info from data (must contain 'fit' categories)
-        x = data["x_values"][index]
-        y = data["data_list"][index]
-
-        fwhms = data["fwhms_fit"][index]
-        amps = data["amplitudes_fit"][index]
-        means = data["means_fit"][index]
-
-        fwhms_guess = data["fwhms_initial"][index]
-        amps_guess = data["amplitudes_initial"][index]
-        means_guess = data["means_initial"][index]
-
-        ncomps = len(amps)
-
-        if "amplitudes" in data:
-            fwhms_true = data["fwhms"][index]
-            amps_true = data["amplitudes"][index]
-            means_true = data["means"][index]
-
-        plt.plot(x, y, "-k", label="data", lw=1.5)
-
-        # Plot fitted, components
-        sum_fit = x * 0.0
-        for i, amp in enumerate(amps):
-            model = amp * np.exp(-(x - means[i]) ** 2 / 2.0 / (fwhms[i] / 2.355) ** 2)
-            model_guess = amps_guess[i] * np.exp(
-                -(x - means_guess[i]) ** 2 / 2.0 / (fwhms_guess[i] / 2.355) ** 2
-            )
-            sum_fit = sum_fit + model
-            plt.plot(x, model, "-g", lw=0.5)
-            if guesses:
-                plt.plot(x, model_guess, "--g", lw=1)
-            plt.xlabel(xlabel, fontsize=16)
-            plt.ylabel(ylabel, fontsize=16)
-            if xlim:
-                plt.xlim(*xlim)
-            if ylim:
-                plt.ylim(*ylim)
-        plt.plot(x, sum_fit, "-g", lw=1.0, label="Fit")
-
-        # If available, plot True components
-        sum_true = x * 0.0
-        if ("amplitudes" in data) and plot_true:
-            for i, amp in enumerate(amps_true):
-                model_true = amps_true[i] * np.exp(
-                    -(x - means_true[i]) ** 2 / 2.0 / (fwhms_true[i] / 2.355) ** 2
-                )
-                sum_true = sum_true + model_true
-                plt.plot(x, model_true, "-r", lw=0.5)
-            plt.plot(x, sum_true, "-r", lw=1.0, label="True")
-
-        plt.title("index = {0}, ncomps = {1}".format(index, ncomps), fontsize=16)
-        plt.legend(loc=0)
-        plt.legend(loc=1)
-        plt.show()
+    # def plot_components(
+    #     self,
+    #     data,
+    #     index,
+    #     xlabel="x",
+    #     ylabel="y",
+    #     xlim=None,
+    #     ylim=None,
+    #     guesses=False,
+    #     plot_true=False,
+    # ):
+    #     # Extract info from data (must contain 'fit' categories)
+    #     x = data["x_values"][index]
+    #     y = data["data_list"][index]
+    #
+    #     fwhms = data["fwhms_fit"][index]
+    #     amps = data["amplitudes_fit"][index]
+    #     means = data["means_fit"][index]
+    #
+    #     fwhms_guess = data["fwhms_initial"][index]
+    #     amps_guess = data["amplitudes_initial"][index]
+    #     means_guess = data["means_initial"][index]
+    #
+    #     ncomps = len(amps)
+    #
+    #     if "amplitudes" in data:
+    #         fwhms_true = data["fwhms"][index]
+    #         amps_true = data["amplitudes"][index]
+    #         means_true = data["means"][index]
+    #
+    #     plt.plot(x, y, "-k", label="data", lw=1.5)
+    #
+    #     # Plot fitted, components
+    #     sum_fit = x * 0.0
+    #     for i, amp in enumerate(amps):
+    #         model = amp * np.exp(-(x - means[i]) ** 2 / 2.0 / (fwhms[i] / 2.355) ** 2)
+    #         model_guess = amps_guess[i] * np.exp(
+    #             -(x - means_guess[i]) ** 2 / 2.0 / (fwhms_guess[i] / 2.355) ** 2
+    #         )
+    #         sum_fit = sum_fit + model
+    #         plt.plot(x, model, "-g", lw=0.5)
+    #         if guesses:
+    #             plt.plot(x, model_guess, "--g", lw=1)
+    #         plt.xlabel(xlabel, fontsize=16)
+    #         plt.ylabel(ylabel, fontsize=16)
+    #         if xlim:
+    #             plt.xlim(*xlim)
+    #         if ylim:
+    #             plt.ylim(*ylim)
+    #     plt.plot(x, sum_fit, "-g", lw=1.0, label="Fit")
+    #
+    #     # If available, plot True components
+    #     sum_true = x * 0.0
+    #     if ("amplitudes" in data) and plot_true:
+    #         for i, amp in enumerate(amps_true):
+    #             model_true = amps_true[i] * np.exp(
+    #                 -(x - means_true[i]) ** 2 / 2.0 / (fwhms_true[i] / 2.355) ** 2
+    #             )
+    #             sum_true = sum_true + model_true
+    #             plt.plot(x, model_true, "-r", lw=0.5)
+    #         plt.plot(x, sum_true, "-r", lw=1.0, label="True")
+    #
+    #     plt.title("index = {0}, ncomps = {1}".format(index, ncomps), fontsize=16)
+    #     plt.legend(loc=0)
+    #     plt.legend(loc=1)
+    #     plt.show()

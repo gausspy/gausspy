@@ -13,7 +13,7 @@ from scipy.interpolate import interp1d
 from lmfit import minimize as lmfit_minimize
 from lmfit import Parameters
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
 from scipy.ndimage.filters import median_filter, convolve
 
@@ -80,7 +80,7 @@ def func(x, *args):
     and therefore has len(args) = 3 x N_components.
     """
     ncomps = len(args) // 3
-    yout = x * 0.0
+    yout = np.zeros(len(x))
     for i in range(ncomps):
         yout = yout + gaussian(args[i], args[i + ncomps], args[i + 2 * ncomps])(x)
     return yout
@@ -91,7 +91,7 @@ def initialGuess(
     data,
     errors=None,
     alpha=None,
-    plot=False,
+    # plot=False,
     mode="python",
     verbose=False,
     SNR_thresh=5.0,
@@ -263,7 +263,7 @@ def AGD(
     errors,
     alpha1=None,
     alpha2=None,
-    plot=False,
+    # plot=False,
     mode="python",
     verbose=False,
     SNR_thresh=5.0,
@@ -298,7 +298,7 @@ def AGD(
         data,
         errors=None,
         alpha=alpha1,
-        plot=plot,
+        # plot=plot,
         mode=mode,
         verbose=verbose,
         SNR_thresh=SNR_thresh[0],
@@ -395,7 +395,7 @@ def AGD(
             BLFrac=BLFrac,
             SNR2_thresh=SNR2_thresh[1],  # June 9 2014, change
             deblend=deblend,
-            plot=plot,
+            # plot=plot,
         )
         ncomps_g2 = agd2["N_components"]
         if ncomps_g2 > 0:
@@ -434,126 +434,132 @@ def AGD(
         [amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp]]
     )
 
-    if (perform_final_fit) and (ncomps_gf > 0):
+    if perform_final_fit:
         say("\n\n  --> Final Fitting... \n", verbose)
 
-        # Objective functions for final fit
-        def objective_leastsq(paramslm):
-            params = vals_vec_from_lmfit(paramslm)
-            resids = (func(vel, *params).ravel() - data.ravel()) / errors
-            return resids
+        if ncomps_gf > 0:
+            # Objective functions for final fit
+            def objective_leastsq(paramslm):
+                params = vals_vec_from_lmfit(paramslm)
+                resids = (func(vel, *params).ravel() - data.ravel()) / errors
+                return resids
 
-        # Final fit using unconstrained parameters
-        t0 = time.time()
-        lmfit_params = paramvec_to_lmfit(params_gf)
-        result2 = lmfit_minimize(objective_leastsq, lmfit_params, method="leastsq")
-        params_fit = vals_vec_from_lmfit(result2.params)
-        params_errs = errs_vec_from_lmfit(result2.params)
-        ncomps_fit = len(params_fit) // 3
+            # Final fit using unconstrained parameters
+            t0 = time.time()
+            lmfit_params = paramvec_to_lmfit(params_gf)
+            result2 = lmfit_minimize(objective_leastsq, lmfit_params, method="leastsq")
+            params_fit = vals_vec_from_lmfit(result2.params)
+            params_errs = errs_vec_from_lmfit(result2.params)
+            ncomps_fit = len(params_fit) // 3
 
-        del lmfit_params
-        say("Final fit took {0} seconds.".format(time.time() - t0), verbose)
+            del lmfit_params
+            say("Final fit took {0} seconds.".format(time.time() - t0), verbose)
 
         # # Make "FWHMS" positive
         # params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0] = (
         #     -1 * params_fit[0:ncomps_fit][params_fit[0:ncomps_fit] < 0.0]
         # )
 
-        best_fit_final = func(vel, *params_fit).ravel()
-        rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
+            best_fit_final = func(vel, *params_fit).ravel()
+            rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
 
-        # Check if any amplitudes are identically zero, if so, remove them.
-        if np.any(params_fit[0:ncomps_gf] == 0):
-            amps_fit = params_fit[0:ncomps_gf]
-            fwhms_fit = params_fit[ncomps_gf: 2 * ncomps_gf]
-            offsets_fit = params_fit[2 * ncomps_gf: 3 * ncomps_gf]
-            w_keep = amps_fit > 0.0
-            params_fit = np.concatenate(
-                [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
-            )
-            ncomps_fit = len(params_fit) // 3
+            # Check if any amplitudes are identically zero, if so, remove them.
+            if np.any(params_fit[0:ncomps_gf] == 0):
+                amps_fit = params_fit[0:ncomps_gf]
+                fwhms_fit = params_fit[ncomps_gf: 2 * ncomps_gf]
+                offsets_fit = params_fit[2 * ncomps_gf: 3 * ncomps_gf]
+                w_keep = amps_fit > 0.0
+                params_fit = np.concatenate(
+                    [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
+                )
+                ncomps_fit = len(params_fit) // 3
+        else:
+            best_fit_final = np.zeros(len(vel))
+            rchi2 = -999.
+            ncomps_fit = ncomps_gf
 
-    if plot:
-        #                       P L O T T I N G
-        datamax = np.max(data)
-
-        # Set up figure
-        fig = plt.figure("AGD results", [12, 12])
-        ax1 = fig.add_axes([0.1, 0.5, 0.4, 0.4])  # Initial guesses (alpha1)
-        ax2 = fig.add_axes([0.5, 0.5, 0.4, 0.4])  # D2 fit to peaks(alpha2)
-        ax3 = fig.add_axes([0.1, 0.1, 0.4, 0.4])  # Initial guesses (alpha2)
-        ax4 = fig.add_axes([0.5, 0.1, 0.4, 0.4])  # Final fit
-
-        # Decorations
-        plt.figtext(0.52, 0.47, "Final fit")
-        if perform_final_fit:
-            plt.figtext(0.52, 0.45, "Reduced Chi2: {0:3.1f}".format(rchi2))
-            plt.figtext(0.52, 0.43, "N components: {0}".format(ncomps_fit))
-
-        plt.figtext(0.12, 0.47, "Phase-two initial guess")
-        plt.figtext(0.12, 0.45, "N components: {0}".format(ncomps_g2))
-
-        plt.figtext(0.12, 0.87, "Phase-one initial guess")
-        plt.figtext(0.12, 0.85, "N components: {0}".format(ncomps_g1))
-
-        plt.figtext(0.52, 0.87, "Intermediate fit")
-
-        # Initial Guesses (Panel 1)
-        # -------------------------
-        ax1.xaxis.tick_top()
-        u2_scale = 1.0 / np.max(np.abs(u2)) * datamax * 0.5
-        ax1.plot(vel, data, "-k")
-        ax1.plot(vel, u2 * u2_scale, "-r")
-        ax1.plot(vel, vel / vel * agd1["thresh"], "-k")
-        ax1.plot(vel, vel / vel * agd1["thresh2"] * u2_scale, "--r")
-
-        for i in range(ncomps_g1):
-            one_component = gaussian(
-                params_g1[i], params_g1[i + ncomps_g1], params_g1[i + 2 * ncomps_g1]
-            )(vel)
-            ax1.plot(vel, one_component, "-g")
-
-        # Plot intermediate fit components (Panel 2)
-        # ------------------------------------------
-        ax2.xaxis.tick_top()
-        ax2.plot(vel, data, "-k")
-        ax2.yaxis.tick_right()
-        for i in range(ncomps_f1):
-            one_component = gaussian(
-                params_f1[i], params_f1[i + ncomps_f1], params_f1[i + 2 * ncomps_f1]
-            )(vel)
-            ax2.plot(vel, one_component, "-", color="blue")
-
-        # Residual spectrum (Panel 3)
-        # -----------------------------
-        if phase == "two":
-            u22_scale = 1.0 / np.abs(u22).max() * np.max(residuals) * 0.5
-            ax3.plot(vel, residuals, "-k")
-            ax3.plot(vel, vel / vel * agd2["thresh"], "--k")
-            ax3.plot(vel, vel / vel * agd2["thresh2"] * u22_scale, "--r")
-            ax3.plot(vel, u22 * u22_scale, "-r")
-            for i in range(ncomps_g2):
-                one_component = gaussian(
-                    params_g2[i], params_g2[i + ncomps_g2], params_g2[i + 2 * ncomps_g2]
-                )(vel)
-                ax3.plot(vel, one_component, "-g")
-
-        # Plot best-fit model (Panel 4)
-        # -----------------------------
-        if perform_final_fit:
-            ax4.yaxis.tick_right()
-            ax4.plot(vel, best_fit_final, label="final model", color="purple")
-            ax4.plot(vel, data, label="data", color="black")
-            for i in range(ncomps_fit):
-                one_component = gaussian(
-                    params_fit[i],
-                    params_fit[i + ncomps_fit],
-                    params_fit[i + 2 * ncomps_fit],
-                )(vel)
-                ax4.plot(vel, one_component, "-", color="purple")
-            ax4.plot(vel, best_fit_final, "-", color="purple")
-
-        plt.show()
+    # if plot:
+    #     #                       P L O T T I N G
+    #     datamax = np.max(data)
+    #
+    #     # Set up figure
+    #     fig = plt.figure("AGD results", [12, 12])
+    #     ax1 = fig.add_axes([0.1, 0.5, 0.4, 0.4])  # Initial guesses (alpha1)
+    #     ax2 = fig.add_axes([0.5, 0.5, 0.4, 0.4])  # D2 fit to peaks(alpha2)
+    #     ax3 = fig.add_axes([0.1, 0.1, 0.4, 0.4])  # Initial guesses (alpha2)
+    #     ax4 = fig.add_axes([0.5, 0.1, 0.4, 0.4])  # Final fit
+    #
+    #     # Decorations
+    #     plt.figtext(0.52, 0.47, "Final fit")
+    #     # if perform_final_fit:
+    #     #     plt.figtext(0.52, 0.45, "Reduced Chi2: {0:3.1f}".format(rchi2))
+    #     #     plt.figtext(0.52, 0.43, "N components: {0}".format(ncomps_fit))
+    #
+    #     plt.figtext(0.12, 0.47, "Phase-two initial guess")
+    #     plt.figtext(0.12, 0.45, "N components: {0}".format(ncomps_g2))
+    #
+    #     plt.figtext(0.12, 0.87, "Phase-one initial guess")
+    #     plt.figtext(0.12, 0.85, "N components: {0}".format(ncomps_g1))
+    #
+    #     plt.figtext(0.52, 0.87, "Intermediate fit")
+    #
+    #     # Initial Guesses (Panel 1)
+    #     # -------------------------
+    #     ax1.xaxis.tick_top()
+    #     u2_scale = 1.0 / np.max(np.abs(u2)) * datamax * 0.5
+    #     ax1.plot(vel, data, "-k")
+    #     ax1.plot(vel, u2 * u2_scale, "-r")
+    #     ax1.plot(vel, vel / vel * agd1["thresh"], "-k")
+    #     ax1.plot(vel, vel / vel * agd1["thresh2"] * u2_scale, "--r")
+    #
+    #     for i in range(ncomps_g1):
+    #         one_component = gaussian(
+    #             params_g1[i], params_g1[i + ncomps_g1], params_g1[i + 2 * ncomps_g1]
+    #         )(vel)
+    #         ax1.plot(vel, one_component, "-g")
+    #
+    #     # Plot intermediate fit components (Panel 2)
+    #     # ------------------------------------------
+    #     ax2.xaxis.tick_top()
+    #     ax2.plot(vel, data, "-k")
+    #     ax2.yaxis.tick_right()
+    #     for i in range(ncomps_f1):
+    #         one_component = gaussian(
+    #             params_f1[i], params_f1[i + ncomps_f1], params_f1[i + 2 * ncomps_f1]
+    #         )(vel)
+    #         ax2.plot(vel, one_component, "-", color="blue")
+    #
+    #     # Residual spectrum (Panel 3)
+    #     # -----------------------------
+    #     if phase == "two":
+    #         u22_scale = 1.0 / np.abs(u22).max() * np.max(residuals) * 0.5
+    #         ax3.plot(vel, residuals, "-k")
+    #         ax3.plot(vel, vel / vel * agd2["thresh"], "--k")
+    #         ax3.plot(vel, vel / vel * agd2["thresh2"] * u22_scale, "--r")
+    #         ax3.plot(vel, u22 * u22_scale, "-r")
+    #         for i in range(ncomps_g2):
+    #             one_component = gaussian(
+    #                 params_g2[i], params_g2[i + ncomps_g2], params_g2[i + 2 * ncomps_g2]
+    #             )(vel)
+    #             ax3.plot(vel, one_component, "-g")
+    #
+    #     # Plot best-fit model (Panel 4)
+    #     # -----------------------------
+    #     if perform_final_fit:
+    #         ax4.yaxis.tick_right()
+    #         ax4.plot(vel, best_fit_final, label="final model", color="purple")
+    #         ax4.plot(vel, data, label="data", color="black")
+    #         for i in range(ncomps_fit):
+    #             one_component = gaussian(
+    #                 params_fit[i],
+    #                 params_fit[i + ncomps_fit],
+    #                 params_fit[i + 2 * ncomps_fit],
+    #             )(vel)
+    #             ax4.plot(vel, one_component, "-", color="purple")
+    #         ax4.plot(vel, best_fit_final, "-", color="purple")
+    #
+    #     plt.show()
+    #     plt.close()
 
     # Construct output dictionary (odict)
     # -----------------------------------
