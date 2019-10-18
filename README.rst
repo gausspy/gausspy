@@ -1,8 +1,8 @@
 .. image:: docs/gausspy.png
    :width: 600
 
-.. image:: http://readthedocs.org/projects/gausspy-py3/badge/?version=latest
-   :target: https://gausspy-py3.readthedocs.io/en/latest/
+.. image:: http://readthedocs.org/projects/gausspy/badge/?version=latest
+   :target: https://gausspy.readthedocs.io/en/latest/
    :alt: Documentation Status
 
 .. image:: https://travis-ci.org/cmurray-astro/gausspy.svg?branch=master
@@ -28,7 +28,7 @@ Documentation
 ===============
 
 Details of installing, running, and contributing to the GaussPy are at
-<http://gausspy-py3.readthedocs.io>.
+<http://gausspy.readthedocs.io>.
 
 ===============
 Contributing
