@@ -12,7 +12,7 @@ Download GaussPy using git (from this fork, which is currently updated to suppor
 
 .. code-block:: bash
 
-    git clone git://github.com/cmurray-astro/gausspy.git
+    git clone git://github.com/gausspy/gausspy.git
 
 ------------
 Dependencies
