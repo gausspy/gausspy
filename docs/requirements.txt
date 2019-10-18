@@ -1,0 +1,10 @@
+astropy-helpers
+sphinx
+gitpython
+sphinx-astropy
+astropy
+matplotlib
+numpy
+scipy
+h5py
+lmfit

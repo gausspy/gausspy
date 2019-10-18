@@ -1,0 +1,8 @@
+
+version: 1
+
+python:
+  version: 3.6
+  setup_py_install: true
+  install:
+     - requirements: docs/requirements.txt
