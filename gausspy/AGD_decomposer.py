@@ -582,7 +582,7 @@ def AGD_double(
     data_em,
     errors,
     errors_em,
-    scale=None,
+    # scale=None,
     alpha1=None,
     alpha2=None,
     alpha_em=None,
