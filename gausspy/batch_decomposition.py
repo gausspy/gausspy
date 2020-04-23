@@ -59,7 +59,7 @@ def decompose_double(i):
         agd_data["errors"][i],
         agd_data["errors_em"][i],
     )
-
+    print(result)
     return result
 
 
@@ -121,7 +121,11 @@ def func(use_ncpus=None):
     # p = multiprocessing.Pool(ncpus, init_worker)
     print("using {} out of {} cpus".format(use_ncpus, ncpus))
     try:
-        results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
+        if agd_object.p["alpha_em"] is not None:
+            results_list = parallel_process(ilist, decompose_double, n_jobs=use_ncpus)
+            # p.map(decompose_double, ilist)
+        else:
+            results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
     except KeyboardInterrupt:
         print("KeyboardInterrupt... quitting.")
         quit()

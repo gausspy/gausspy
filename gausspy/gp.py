@@ -154,7 +154,7 @@ class GaussianDecomposer(object):
             ydata_em,
             edata,
             edata_em,
-            scale=self.p["scale"],
+            # scale=self.p["scale"],
             alpha1=a1,
             alpha2=a2,
             alpha_em=aem,
@@ -166,7 +166,7 @@ class GaussianDecomposer(object):
             SNR2_thresh=self.p["SNR2_thresh"],
             deblend=self.p["deblend"],
             perform_final_fit=self.p["perform_final_fit"],
-            plot=self.p["plot"],
+            # plot=self.p["plot"],
         )
         return results
 
@@ -235,6 +235,13 @@ class GaussianDecomposer(object):
             "fwhms_fit_err",
             "means_fit_err",
             "best_fit_rchi2",
+            "amplitudes_fit_em",
+            "fwhms_fit_em",
+            "means_fit_em",
+            "means_fit_err_em",
+            "amplitudes_fit_err_em",
+            "fwhms_fit_err_em",
+            "fit_labels",
         ]
 
         output_data = dict((key, []) for key in new_keys)
@@ -302,7 +309,7 @@ class GaussianDecomposer(object):
 
             if self.p["alpha_em"] is not None:
                 ncomps = (
-                    len(result["best_fit_parameters_em"]) / 3
+                    len(result["best_fit_parameters_em"]) // 3
                     if "best_fit_parameters_em" in result
                     else 0
                 )

@@ -46,6 +46,54 @@ def paramvec_to_lmfit(paramvec):
     return params
 
 
+def paramvec_p3_to_lmfit(paramvec):
+    """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
+    ncomps = len(paramvec) // 5
+    params = Parameters()
+    labels = np.concatenate(
+        [
+            paramvec[3 * ncomps : 4 * ncomps],
+            paramvec[3 * ncomps : 4 * ncomps],
+            paramvec[3 * ncomps : 4 * ncomps],
+        ]
+    )
+    tau = paramvec[4 * ncomps :]
+
+    val = 0.1
+    for i in range(len(paramvec) - ncomps * 2):
+        if i < ncomps:
+            if labels[i] == 1:
+                max_tb = (
+                    21.86
+                    * np.float(paramvec[i + ncomps]) ** 2
+                    * (1.0 - np.exp(-1.0 * tau[i]))
+                )
+                params.add("p" + str(i + 1), value=paramvec[i], min=0.0, max=max_tb)
+            else:
+                params.add("p" + str(i + 1), value=paramvec[i], min=0.0)
+        if i >= ncomps and i < 2 * ncomps:
+            if labels[i] == 1:
+                params.add(
+                    "p" + str(i + 1),
+                    value=paramvec[i],
+                    min=paramvec[i] - val * paramvec[i],
+                    max=paramvec[i] + val * paramvec[i],
+                )
+            else:
+                params.add("p" + str(i + 1), value=paramvec[i], min=0.0)
+        if i >= 2 * ncomps:
+            if labels[i] == 1:
+                params.add(
+                    "p" + str(i + 1),
+                    value=paramvec[i],
+                    min=paramvec[i] - val * paramvec[i],
+                    max=paramvec[i] + val * paramvec[i],
+                )
+            else:
+                params.add("p" + str(i + 1), value=paramvec[i])
+    return params
+
+
 def create_fitmask(size, offsets_i, di):
     """ Return valid domain for intermediate fit in d2/dx2 space
 
@@ -756,6 +804,9 @@ def AGD_double(
         [amps_temp[w_sort_amp], widths_temp[w_sort_amp], offsets_temp[w_sort_amp]]
     )
 
+    ncomps_fit = ncomps_gf
+    params_fit = params_gf
+
     if perform_final_fit:
         say("\n\n  --> Final Fitting... \n", verbose)
 
@@ -785,21 +836,26 @@ def AGD_double(
             best_fit_final = func(vel, *params_fit).ravel()
             rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
 
-            # Check if any amplitudes are identically zero, if so, remove them.
-            if np.any(params_fit[0:ncomps_gf] == 0):
-                amps_fit = params_fit[0:ncomps_gf]
-                fwhms_fit = params_fit[ncomps_gf : 2 * ncomps_gf]
-                offsets_fit = params_fit[2 * ncomps_gf : 3 * ncomps_gf]
-                w_keep = amps_fit > 0.0
-                params_fit = np.concatenate(
-                    [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
-                )
-                ncomps_fit = len(params_fit) // 3
+            # # Check if any amplitudes are identically zero, if so, remove them.
+            # if np.any(np.array(params_fit[0:ncomps_fit]) == 0.0):
+            #     amps_fit = np.array(params_fit[0:ncomps_fit], dtype=float)
+            #     fwhms_fit = np.array(
+            #         params_fit[ncomps_fit : 2 * ncomps_fit], dtype=float
+            #     )
+            #     offsets_fit = np.array(
+            #         params_fit[2 * ncomps_fit : 3 * ncomps_fit], dtype=float
+            #     )
+            #     w_keep = amps_fit > 0.0
+            #     params_fit = np.concatenate(
+            #         [amps_fit[w_keep], fwhms_fit[w_keep], offsets_fit[w_keep]]
+            #     )
+            #     ncomps_fit = len(params_fit) // 3
         else:
             best_fit_final = np.zeros(len(vel))
             rchi2 = -999.0
             ncomps_fit = ncomps_gf
 
+    print("NUMBER ABS", ncomps_gf)
     # Construct output dictionary (odict)
     # -----------------------------------
     odict = {}
@@ -871,7 +927,7 @@ def AGD_double(
         residuals = data
         # Finished producing residual emission signal # ---------------------------
 
-        # Search for phase-three guesses in residual emission spectrum
+    # Search for phase-three guesses in residual emission spectrum
     agd3 = initialGuess(
         vel,
         residuals,
@@ -883,10 +939,11 @@ def AGD_double(
         BLFrac=BLFrac,
         SNR2_thresh=SNR_thresh[0],
         deblend=deblend,
-        plot=plot,
+        # plot=plot,
     )
 
     ncomps_g3 = agd3["N_components"]
+    # print("Initial number of comps=", ncomps_g3)
     if ncomps_g3 > 0:
         params_g3 = np.concatenate([agd3["amps"], agd3["FWHMs"], agd3["means"]])
     else:
@@ -896,26 +953,25 @@ def AGD_double(
     # Check for phase three components, make final guess list
     # ------------------------------------------------------
     if ncomps_g3 > 0:
-
         abs_offsets = np.array(params_em[2 * ncomps_em : 3 * ncomps_em], dtype=float)
         em_widths = np.array(params_g3[ncomps_g3 : 2 * ncomps_g3], dtype=float)
         em_amps = np.array(params_g3[0:ncomps_g3], dtype=float)
         em_offsets = np.array(params_g3[2 * ncomps_g3 : 3 * ncomps_g3], dtype=float)
 
-        ind = np.arange(len(em_offsets))
-        indices = []
-
-        # Check if any emission components are within 1 channel of an absorption component
-        for i, offset in enumerate(em_offsets):
-            if np.any(abs_offsets - offset) < dv:
-                print("drop")
-                continue
-            else:
-                indices.append(i)
-
-        em_offsets = em_offsets[indices]
-        em_amps = em_amps[indices]
-        em_widths = em_widths[indices]
+        # ind = np.arange(len(em_offsets))
+        # indices = []
+        #
+        # # Check if any emission components are within 1 channel of an absorption component
+        # for i, offset in enumerate(em_offsets):
+        #     if np.any(abs_offsets - offset) < dv:
+        #         print("drop")
+        #         continue
+        #     else:
+        #         indices.append(i)
+        #
+        # em_offsets = em_offsets[indices]
+        # em_amps = em_amps[indices]
+        # em_widths = em_widths[indices]
         ncomps_g3 = len(em_amps)
 
         amps_emf = np.append(params_em[0:ncomps_em], em_amps)
@@ -959,14 +1015,14 @@ def AGD_double(
         say("Final fit took {0} seconds.".format(time.time() - t0), verbose)
 
         # Make "FWHMS" positive
-        params_emfit[ncomps_emfit : 2 * ncomps_emfit][
-            params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0.0
-        ] = (
-            -1
-            * params_emfit[ncomps_emfit : 2 * ncomps_emfit][
-                params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0.0
-            ]
-        )
+        # params_emfit[ncomps_emfit : 2 * ncomps_emfit][
+        #     params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0
+        # ] = (
+        #     -1
+        #     * params_emfit[ncomps_emfit : 2 * ncomps_emfit][
+        #         params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0
+        #     ]
+        # )
 
         best_fit_final = func(vel, *params_emfit).ravel()
         rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
