@@ -63,7 +63,7 @@ def say(message, verbose=False):
     """ Diagnostic messages
     """
     if verbose:
-        print (message)
+        print(message)
 
 
 def gaussian(peak, FWHM, mean):
@@ -122,11 +122,11 @@ def initialGuess(
     say("BLFrac = {0}".format(BLFrac), verbose)
 
     if not alpha:
-        print ("Must choose value for alpha, no default.")
+        print("Must choose value for alpha, no default.")
         return
 
     if np.any(np.isnan(data)):
-        print ("NaN-values in data, cannot continue.")
+        print("NaN-values in data, cannot continue.")
         return
 
     # Data inspection
@@ -284,7 +284,7 @@ def AGD(
     say("\n  --> AGD() \n", verbose)
 
     if (not alpha2) and (phase == "two"):
-        print ("alpha2 value required")
+        print("alpha2 value required")
         return
 
     dv = np.abs(vel[1] - vel[0])
@@ -606,7 +606,7 @@ def AGD_double(
     say("\n  --> AGD() \n", verbose)
 
     if (not alpha2) and (phase == "two"):
-        print ("alpha2 value required")
+        print("alpha2 value required")
         return
 
     dv = np.abs(vel[1] - vel[0])
@@ -908,7 +908,7 @@ def AGD_double(
         # Check if any emission components are within 1 channel of an absorption component
         for i, offset in enumerate(em_offsets):
             if np.any(abs_offsets - offset) < dv:
-                print "drop"
+                print("drop")
                 continue
             else:
                 indices.append(i)
@@ -973,7 +973,7 @@ def AGD_double(
     else:
         ncomps_emfit = ncomps_emf
 
-    print "ncomps before and after:", ncomps_fit, ncomps_emfit
+    print("ncomps before and after:", ncomps_fit, ncomps_emfit)
 
     # Construct output dictionary (odict)
     # -----------------------------------
