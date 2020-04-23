@@ -38,13 +38,28 @@ def init(*args):
 
 
 def decompose_one(i):
-    print("   ---->  ", i)
+    print ("   ---->  ", i)
     result = GaussianDecomposer.decompose(
         agd_object,
         agd_data["x_values"][i],
         agd_data["data_list"][i],
         agd_data["errors"][i],
     )
+    return result
+
+
+def decompose_double(i):
+    print "   ---->  ", i, " double"
+    result = GaussianDecomposer.decompose_double(
+        agd_object,
+        agd_data["x_values"][i],
+        agd_data["data_list"][i],
+        agd_data["x_values_em"][i],
+        agd_data["data_list_em"][i],
+        agd_data["errors"][i],
+        agd_data["errors_em"][i],
+    )
+
     return result
 
 
@@ -104,10 +119,10 @@ def func(use_ncpus=None):
     if use_ncpus is None:
         use_ncpus = int(0.75 * ncpus)
     # p = multiprocessing.Pool(ncpus, init_worker)
-    print("using {} out of {} cpus".format(use_ncpus, ncpus))
+    print ("using {} out of {} cpus".format(use_ncpus, ncpus))
     try:
         results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
     except KeyboardInterrupt:
-        print("KeyboardInterrupt... quitting.")
+        print ("KeyboardInterrupt... quitting.")
         quit()
     return results_list
