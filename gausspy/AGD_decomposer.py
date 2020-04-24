@@ -958,27 +958,36 @@ def AGD_double(
         em_amps = np.array(params_g3[0:ncomps_g3], dtype=float)
         em_offsets = np.array(params_g3[2 * ncomps_g3 : 3 * ncomps_g3], dtype=float)
 
-        # ind = np.arange(len(em_offsets))
-        # indices = []
-        #
-        # # Check if any emission components are within 1 channel of an absorption component
-        # for i, offset in enumerate(em_offsets):
-        #     if np.any(abs_offsets - offset) < dv:
-        #         print("drop")
-        #         continue
-        #     else:
-        #         indices.append(i)
-        #
-        # em_offsets = em_offsets[indices]
-        # em_amps = em_amps[indices]
-        # em_widths = em_widths[indices]
-        ncomps_g3 = len(em_amps)
+        indices = []
+        # Check if any emission components are within 3 channels of an absorption component
+        if ncomps_fit > 0:
+            for i, offset in enumerate(em_offsets):
+                drop_comp = False
+                for abs_offset in abs_offsets:
+                    if np.abs(abs_offset - offset) < 3.0 * dv:
+                        print(abs_offset, offset, 3.0 * dv)
+                        drop_comp = True
+                if not drop_comp:
+                    indices.append(i)
 
-        amps_emf = np.append(params_em[0:ncomps_em], em_amps)
-        widths_emf = np.append(params_em[ncomps_em : 2 * ncomps_em], em_widths)
-        offsets_emf = np.append(params_em[2 * ncomps_em : 3 * ncomps_em], em_offsets)
-        tau_emf = np.append(params_fit[0:ncomps_em], np.zeros(ncomps_g3))
-        labels_emf = np.append(np.ones(ncomps_em), np.zeros(ncomps_g3))
+            em_offsets = em_offsets[indices]
+            em_amps = em_amps[indices]
+            em_widths = em_widths[indices]
+            ncomps_g3 = len(em_amps)
+
+            amps_emf = np.append(params_em[0:ncomps_em], em_amps)
+            widths_emf = np.append(params_em[ncomps_em : 2 * ncomps_em], em_widths)
+            offsets_emf = np.append(
+                params_em[2 * ncomps_em : 3 * ncomps_em], em_offsets
+            )
+            tau_emf = np.append(params_fit[0:ncomps_em], np.zeros(ncomps_g3))
+            labels_emf = np.append(np.ones(ncomps_em), np.zeros(ncomps_g3))
+        else:
+            amps_emf = em_amps
+            widths_emf = em_widths
+            offsets_emf = em_offsets
+            tau_emf = np.zeros(ncomps_g3)
+            labels_emf = np.zeros(ncomps_g3)
         params_emf = np.concatenate([amps_emf, widths_emf, offsets_emf])
         ncomps_emf = len(params_emf) // 3
     else:
@@ -1014,29 +1023,19 @@ def AGD_double(
         del lmfit_params
         say("Final fit took {0} seconds.".format(time.time() - t0), verbose)
 
-        # Make "FWHMS" positive
-        # params_emfit[ncomps_emfit : 2 * ncomps_emfit][
-        #     params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0
-        # ] = (
-        #     -1
-        #     * params_emfit[ncomps_emfit : 2 * ncomps_emfit][
-        #         params_emfit[ncomps_emfit : 2 * ncomps_emfit] < 0
-        #     ]
-        # )
-
         best_fit_final = func(vel, *params_emfit).ravel()
         rchi2 = np.sum((data - best_fit_final) ** 2 / errors ** 2) / len(data)
     else:
         ncomps_emfit = ncomps_emf
 
-    print("ncomps before and after:", ncomps_fit, ncomps_emfit)
+    # print("ncomps before and after:", ncomps_fit, ncomps_emfit)
 
     # Construct output dictionary (odict)
     # -----------------------------------
     odict["N_components_em"] = ncomps_emfit
     if ncomps_emfit > ncomps_fit:
         odict["best_fit_parameters_em"] = params_emfit
-        odict["best_fit_errors_em"] = params_em_errs
+        odict["best_fit_errors_em"] = params_emfit_errs
         odict["fit_labels"] = labels_emf
 
     return (1, odict)

@@ -49,7 +49,7 @@ def decompose_one(i):
 
 
 def decompose_double(i):
-    print("   ---->  ", i, " double")
+    print("   ---->  ", i)
     result = GaussianDecomposer.decompose_double(
         agd_object,
         agd_data["x_values"][i],
@@ -59,7 +59,7 @@ def decompose_double(i):
         agd_data["errors"][i],
         agd_data["errors_em"][i],
     )
-    print(result)
+    # print(result)
     return result
 
 
