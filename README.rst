@@ -1,8 +1,8 @@
 .. image:: docs/gausspy.png
    :width: 600
 
-.. image:: http://readthedocs.org/projects/gausspy-py3/badge/?version=latest
-   :target: https://gausspy-py3.readthedocs.io/en/latest/
+.. image:: http://readthedocs.org/projects/gausspy/badge/?version=latest
+   :target: https://gausspy.readthedocs.io/en/latest/
    :alt: Documentation Status
 
 .. image:: https://travis-ci.org/cmurray-astro/gausspy.svg?branch=master
@@ -28,7 +28,7 @@ Documentation
 ===============
 
 Details of installing, running, and contributing to the GaussPy are at
-<http://gausspy-py3.readthedocs.io>.
+<http://gausspy.readthedocs.io>.
 
 ===============
 Contributing
@@ -41,14 +41,14 @@ leave a comment and we will be happy to assist.   New contributions and
 contributors are very welcome!
 
 New to github or open source projects?  If you are unsure about where to start
-or haven't used github before, please feel free to contact `@cmurray-astro`.
+or haven't used github before, please feel free to contact us.
 Want more information about how to make a contribution?  Take a look at
 the astropy `contributing`_ and `developer`_ documentation.
 
 Feedback and feature requests?   Is there something missing you would like
-to see?  Please open an issue or send an email to  `@cmurray-astro`.
-GaussPy follows the `Astropy Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_ and strives to provide a
-welcoming community to all of our users and contributors.
+to see?  Please open an issue!
+GaussPy follows the `Astropy Code of Conduct <http://www.astropy.org/about.html#codeofconduct>`_ 
+and strives to provide a welcoming community to all of our users and contributors.
 
 We love contributions! GaussPy is open source,
 built on open source, and we'd love to have you hang out in our community.
