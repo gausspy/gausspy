@@ -655,7 +655,28 @@ def AGD_double(
     perform_final_fit=True,
     phase="two",
 ):
-    """ Autonomous Gaussian Decomposition
+    """ Autonomous Gaussian Decomposition "hybrid" Method
+    Allows for simultaneous decomposition of 21cm absorption and emission
+    New free parameters, in addition to the alpha parameters and
+    signal to noise ratios for standard one- or two-phase AGD fit, include:
+        alpha_em:     regularization paramter for the fit to emission (either
+                        the residuals of the absorption ,or the full emission
+                        spectrum in the absence of detected absorption components)
+                        Default: None
+        wiggle:       factor by which parameters from the absorption fit (i.e.,
+                        the Gaussian parameters of components detected in
+                        absorption) are allowed to vary in the fit to emission.
+                        Default: 10%
+        drop_width:   if a component is found in the fit to emission and its mean
+                        position is within +/- drop_width (defind in channels)
+                        from the mean position of any absorption component, the
+                        emission component is dropped from the fit.
+                        Default: 3 channels
+        min_dv:       minimum width of components fit in the emission-only fit.
+                        Limits AGD from fitting unrealistically narrow components
+                        in emission which, if real, shoud have been detected in
+                        absorption.
+                        Default: 0 (i.e., no constraint)
     """
 
     if type(SNR2_thresh) != type([]):
