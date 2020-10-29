@@ -1,11 +1,11 @@
 .. _hybrid-example-tutorial:
 
-=======================================
-21 cm Absorption & Emission Tutorial
-=======================================
+============================================
+Application: 21 cm Absorption & Emission Fit
+============================================
 
-Simultaneous Decomposition of Emission and Absorption
-------------------------------------------------------
+Simultaneous Decomposition
+--------------------------
 
 One application of AGD is to decompose 21 cm spectral lines into Gaussian
 components. To constrain the excitation temperature and column density of these

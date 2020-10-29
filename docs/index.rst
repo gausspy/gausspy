@@ -14,8 +14,5 @@ Welcome to GaussPy's documentation!
    install
    tutorial
    dataprep
+   hybrid
    method
-
-
-
-
