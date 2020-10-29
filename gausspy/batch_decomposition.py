@@ -48,6 +48,21 @@ def decompose_one(i):
     return result
 
 
+def decompose_double(i):
+    # print("   ---->  ", i)
+    result = GaussianDecomposer.decompose_double(
+        agd_object,
+        agd_data["x_values"][i],
+        agd_data["data_list"][i],
+        agd_data["x_values_em"][i],
+        agd_data["data_list_em"][i],
+        agd_data["errors"][i],
+        agd_data["errors_em"][i],
+    )
+    # print(result.keys())
+    return result
+
+
 def parallel_process(array, function, n_jobs=16, use_kwargs=False, front_num=1):
     """A parallel version of the map function with a progress bar.
     Args:
@@ -106,7 +121,11 @@ def func(use_ncpus=None):
     # p = multiprocessing.Pool(ncpus, init_worker)
     print("using {} out of {} cpus".format(use_ncpus, ncpus))
     try:
-        results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
+        if agd_object.p["alpha_em"] is not None:
+            results_list = parallel_process(ilist, decompose_double, n_jobs=use_ncpus)
+            # p.map(decompose_double, ilist)
+        else:
+            results_list = parallel_process(ilist, decompose_one, n_jobs=use_ncpus)
     except KeyboardInterrupt:
         print("KeyboardInterrupt... quitting.")
         quit()

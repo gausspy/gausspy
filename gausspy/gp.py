@@ -18,10 +18,17 @@ class GaussianDecomposer(object):
             self.p = {
                 "alpha1": None,
                 "alpha2": None,
+                "alpha_em": None,
+                "alpha1_em": None,
+                "alpha2_em": None,
                 "training_results": None,
                 "phase": "one",
                 "SNR2_thresh": 5.0,
                 "SNR_thresh": 5.0,
+                "SNR_em": 5.0,
+                "wiggle": 0.1,
+                "drop_width": 10,
+                "min_dv": 0,
                 "deblend": True,
                 "mode": "python",
                 "BLFrac": 0.1,
@@ -65,9 +72,11 @@ class GaussianDecomposer(object):
             return
         print("Training...")
 
-        self.p["alpha1"], self.p["alpha2"], self.p[
-            "training_results"
-        ] = gradient_descent.train(
+        (
+            self.p["alpha1"],
+            self.p["alpha2"],
+            self.p["training_results"],
+        ) = gradient_descent.train(
             alpha1_initial=alpha1_initial,
             alpha2_initial=alpha2_initial,
             training_data=self.p["training_data"],
@@ -114,6 +123,58 @@ class GaussianDecomposer(object):
             SNR_thresh=self.p["SNR_thresh"],
             BLFrac=self.p["BLFrac"],
             SNR2_thresh=self.p["SNR2_thresh"],
+            deblend=self.p["deblend"],
+            perform_final_fit=self.p["perform_final_fit"],
+            # plot=self.p["plot"],
+        )
+        return results
+
+    def decompose_double(self, xdata, ydata, xdata_em, ydata_em, edata, edata_em):
+        """ Decompose an absorption and emission pair simultaneously """
+
+        if (self.p["phase"] == "one") and (not self.p["alpha1"]):
+            print("phase = one, and alpha1 is unset")
+            return
+
+        if (self.p["phase"] == "two") and (
+            (not self.p["alpha1"]) or (not self.p["alpha2"])
+        ):
+            print("phase = two, and either alpha1 or alpha2 is unset")
+            return
+
+        if self.p["mode"] != "conv":
+            a1 = 10 ** self.p["alpha1"]
+            a2 = 10 ** self.p["alpha2"] if self.p["phase"] == "two" else None
+            aem = 10 ** self.p["alpha_em"]
+            wgle = self.p["wiggle"]
+            dw = self.p["drop_width"]
+            mdv = self.p["min_dv"]
+        else:
+            a1 = self.p["alpha1"]
+            a2 = self.p["alpha2"] if self.p["phase"] == "two" else None
+            aem = self.p["alpha_em"]
+
+        status, results = AGD_decomposer.AGD_double(
+            xdata,
+            ydata,
+            xdata_em,
+            ydata_em,
+            edata,
+            edata_em,
+            # scale=self.p["scale"],
+            alpha1=a1,
+            alpha2=a2,
+            alpha_em=aem,
+            wiggle=self.p["wiggle"],
+            drop_width=self.p["drop_width"],
+            min_dv=self.p["min_dv"],
+            phase=self.p["phase"],
+            mode=self.p["mode"],
+            verbose=self.p["verbose"],
+            SNR_thresh=self.p["SNR_thresh"],
+            BLFrac=self.p["BLFrac"],
+            SNR2_thresh=self.p["SNR2_thresh"],
+            SNR_em=self.p["SNR_em"],
             deblend=self.p["deblend"],
             perform_final_fit=self.p["perform_final_fit"],
             # plot=self.p["plot"],
@@ -185,20 +246,28 @@ class GaussianDecomposer(object):
             "fwhms_fit_err",
             "means_fit_err",
             "best_fit_rchi2",
+            "amplitudes_fit_em",
+            "fwhms_fit_em",
+            "means_fit_em",
+            "means_fit_err_em",
+            "amplitudes_fit_err_em",
+            "fwhms_fit_err_em",
+            "fit_labels",
         ]
 
         output_data = dict((key, []) for key in new_keys)
 
         for i, result in enumerate(result_list):
-
+            # print(result.keys())
+            # print(result)
             # Save best-fit parameters
             ncomps = result["N_components"]
             amps = result["best_fit_parameters"][0:ncomps] if ncomps > 0 else []
             fwhms = (
-                result["best_fit_parameters"][ncomps: 2 * ncomps] if ncomps > 0 else []
+                result["best_fit_parameters"][ncomps : 2 * ncomps] if ncomps > 0 else []
             )
             offsets = (
-                result["best_fit_parameters"][2 * ncomps: 3 * ncomps]
+                result["best_fit_parameters"][2 * ncomps : 3 * ncomps]
                 if ncomps > 0
                 else []
             )
@@ -216,12 +285,12 @@ class GaussianDecomposer(object):
                 else []
             )
             fwhms_initial = (
-                result["initial_parameters"][ncomps_initial: 2 * ncomps_initial]
+                result["initial_parameters"][ncomps_initial : 2 * ncomps_initial]
                 if ncomps_initial > 0
                 else []
             )
             offsets_initial = (
-                result["initial_parameters"][2 * ncomps_initial: 3 * ncomps_initial]
+                result["initial_parameters"][2 * ncomps_initial : 3 * ncomps_initial]
                 if ncomps_initial > 0
                 else []
             )
@@ -235,12 +304,12 @@ class GaussianDecomposer(object):
             rchi2 = [result["rchi2"]] if "rchi2" in result else None
             amps_err = result["best_fit_errors"][0:ncomps] if ncomps_initial > 0 else []
             fwhms_err = (
-                result["best_fit_errors"][ncomps: 2 * ncomps]
+                result["best_fit_errors"][ncomps : 2 * ncomps]
                 if ncomps_initial > 0
                 else []
             )
             offsets_err = (
-                result["best_fit_errors"][2 * ncomps: 3 * ncomps]
+                result["best_fit_errors"][2 * ncomps : 3 * ncomps]
                 if ncomps_initial > 0
                 else []
             )
@@ -249,6 +318,57 @@ class GaussianDecomposer(object):
             output_data["means_fit_err"].append(offsets_err)
             output_data["fwhms_fit_err"].append(fwhms_err)
             output_data["amplitudes_fit_err"].append(amps_err)
+
+            if self.p["alpha_em"] is not None:
+                ncomps = (
+                    len(result["best_fit_parameters_em"]) // 3
+                    if "best_fit_parameters_em" in result
+                    else 0
+                )
+                # print("to save:", ncomps)
+                amps = (
+                    result["best_fit_parameters_em"][0:ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+                fwhms = (
+                    result["best_fit_parameters_em"][ncomps : 2 * ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+                offsets = (
+                    result["best_fit_parameters_em"][2 * ncomps : 3 * ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+                fit_labels = (
+                    result["fit_labels"] if "best_fit_parameters_em" in result else []
+                )
+
+                output_data["amplitudes_fit_em"].append(amps)
+                output_data["fwhms_fit_em"].append(fwhms)
+                output_data["means_fit_em"].append(offsets)
+                output_data["fit_labels"].append(fit_labels)
+
+                amps_err = (
+                    result["best_fit_errors_em"][0:ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+                fwhms_err = (
+                    result["best_fit_errors_em"][ncomps : 2 * ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+                offsets_err = (
+                    result["best_fit_errors_em"][2 * ncomps : 3 * ncomps]
+                    if "best_fit_parameters_em" in result
+                    else []
+                )
+
+                output_data["means_fit_err_em"].append(offsets_err)
+                output_data["fwhms_fit_err_em"].append(fwhms_err)
+                output_data["amplitudes_fit_err_em"].append(amps_err)
 
         print("100 finished.%")
         return output_data
