@@ -8,7 +8,7 @@ Welcome to GaussPy's documentation!
 
 
 .. toctree::
-   :maxdepth: 2
+   :hidden
 
    intro
    install
