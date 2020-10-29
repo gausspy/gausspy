@@ -25,6 +25,10 @@ class GaussianDecomposer(object):
                 "phase": "one",
                 "SNR2_thresh": 5.0,
                 "SNR_thresh": 5.0,
+                "SNR_em": 5.0,
+                "wiggle": 0.1,
+                "drop_width": 10,
+                "min_dv": 0,
                 "deblend": True,
                 "mode": "python",
                 "BLFrac": 0.1,
@@ -141,7 +145,10 @@ class GaussianDecomposer(object):
         if self.p["mode"] != "conv":
             a1 = 10 ** self.p["alpha1"]
             a2 = 10 ** self.p["alpha2"] if self.p["phase"] == "two" else None
-            aem = self.p["alpha_em"]
+            aem = 10 ** self.p["alpha_em"]
+            wgle = self.p["wiggle"]
+            dw = self.p["drop_width"]
+            mdv = self.p["min_dv"]
         else:
             a1 = self.p["alpha1"]
             a2 = self.p["alpha2"] if self.p["phase"] == "two" else None
@@ -158,12 +165,16 @@ class GaussianDecomposer(object):
             alpha1=a1,
             alpha2=a2,
             alpha_em=aem,
+            wiggle=self.p["wiggle"],
+            drop_width=self.p["drop_width"],
+            min_dv=self.p["min_dv"],
             phase=self.p["phase"],
             mode=self.p["mode"],
             verbose=self.p["verbose"],
             SNR_thresh=self.p["SNR_thresh"],
             BLFrac=self.p["BLFrac"],
             SNR2_thresh=self.p["SNR2_thresh"],
+            SNR_em=self.p["SNR_em"],
             deblend=self.p["deblend"],
             perform_final_fit=self.p["perform_final_fit"],
             # plot=self.p["plot"],
@@ -247,7 +258,8 @@ class GaussianDecomposer(object):
         output_data = dict((key, []) for key in new_keys)
 
         for i, result in enumerate(result_list):
-
+            # print(result.keys())
+            # print(result)
             # Save best-fit parameters
             ncomps = result["N_components"]
             amps = result["best_fit_parameters"][0:ncomps] if ncomps > 0 else []
@@ -313,6 +325,7 @@ class GaussianDecomposer(object):
                     if "best_fit_parameters_em" in result
                     else 0
                 )
+                # print("to save:", ncomps)
                 amps = (
                     result["best_fit_parameters_em"][0:ncomps]
                     if "best_fit_parameters_em" in result
