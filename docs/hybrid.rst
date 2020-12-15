@@ -1,4 +1,4 @@
-.. _hybrid-example-tutorial:
+.. _hybrid:
 
 ============================================
 Application: 21 cm Absorption & Emission Fit
