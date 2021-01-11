@@ -75,16 +75,27 @@ These include:
 1. ``alpha_em``: the regularization parameter governing the AGD fit to the
 emission residuals.
 
-2. ``wiggle``: the percentage by which the absorption component widths and positions
-are allowed to vary in the fit to emission (e.g., 10%)
+2. ``max_tb``: the maximum brightness temperature absorption components are
+allowed to have in emission. If set to a value, the maximum will be this value.
+If set to "max" (string), the maximum Tb will be computed from the maximum
+kinetic temperature assuming the absorption width and amplitude. If set to None
+(the default), no max will be applied.
 
-3. ``min_dv``: the minimum FWHM of the emission-only components (used to avoid fitting
+3. ``p_width``: the percentage by which the absorption component widths
+are allowed to vary in the fit to emission (e.g., if set to 0.1, the widths
+are allowed to vary by +/-10%). Default = 10%
+
+4. ``d_mean``: the absolute number of channels the absorption components are
+allowed to vary in the fit to emission (e.g., if set to 2, the mean positions
+are allowed to vary by +/-2 channels). Default = 2
+
+5. ``min_dv``: the minimum FWHM of the emission-only components (used to avoid fitting
 unrealistically narrow components in emission which should be recovered in absorption).
 
-4. ``drop_width``: if an emission component is fit by AGD within this number of
+6. ``drop_width``: if an emission component is fit by AGD within this number of
 channels from the position of a fitted absorption component, it will be discarded.
 
-5. ``SNR_em``: the signal-to-noise ratio limit for the emission components.
+7. ``SNR_em``: the signal-to-noise ratio limit for the emission components.
 
 The fit then proceeds in a similar manner as in the standard AGD fit:
 
@@ -105,7 +116,9 @@ The fit then proceeds in a similar manner as in the standard AGD fit:
 
     # Set emission parameters
     g.set('alpha_em', 3.75)
-    g.set('wiggle', 10)
+    g.set('max_tb', None)
+    g.set('p_width', 10)
+    g.set('d_mean', 2)
     g.set('min_dv', 10)
     g.set('drop_width', 3)
     g.set('SNR_em', 3)

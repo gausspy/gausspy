@@ -26,7 +26,9 @@ class GaussianDecomposer(object):
                 "SNR2_thresh": 5.0,
                 "SNR_thresh": 5.0,
                 "SNR_em": 5.0,
-                "wiggle": 0.1,
+                "max_tb": None,
+                "p_width": 0.1,
+                "d_mean": 2,
                 "drop_width": 10,
                 "min_dv": 0,
                 "deblend": True,
@@ -146,9 +148,7 @@ class GaussianDecomposer(object):
             a1 = 10 ** self.p["alpha1"]
             a2 = 10 ** self.p["alpha2"] if self.p["phase"] == "two" else None
             aem = 10 ** self.p["alpha_em"]
-            wgle = self.p["wiggle"]
-            dw = self.p["drop_width"]
-            mdv = self.p["min_dv"]
+
         else:
             a1 = self.p["alpha1"]
             a2 = self.p["alpha2"] if self.p["phase"] == "two" else None
@@ -165,7 +165,9 @@ class GaussianDecomposer(object):
             alpha1=a1,
             alpha2=a2,
             alpha_em=aem,
-            wiggle=self.p["wiggle"],
+            max_tb=self.p["max_tb"],
+            p_width=self.p["p_width"],
+            d_mean=self.p["d_mean"],
             drop_width=self.p["drop_width"],
             min_dv=self.p["min_dv"],
             phase=self.p["phase"],
@@ -179,6 +181,7 @@ class GaussianDecomposer(object):
             perform_final_fit=self.p["perform_final_fit"],
             # plot=self.p["plot"],
         )
+
         return results
 
     def status(self):
@@ -208,8 +211,8 @@ class GaussianDecomposer(object):
             print("Given key does not exist.")
 
     def save_state(self, filename, clobber=False):
-        """ Save the current decomposer object, and all
-             associated parameters to a python pickle file."""
+        """Save the current decomposer object, and all
+        associated parameters to a python pickle file."""
 
         if os.path.isfile(filename):
             if clobber:
@@ -220,8 +223,8 @@ class GaussianDecomposer(object):
         pickle.dump(self, open(filename, "wb"))
 
     def batch_decomposition(self, science_data_path, ilist=None):
-        """ Science data sould be AGD format
-            ilist is either None or an integer list"""
+        """Science data sould be AGD format
+        ilist is either None or an integer list"""
 
         # Dump information to hard drive to allow multiprocessing
         pickle.dump(
@@ -258,7 +261,6 @@ class GaussianDecomposer(object):
         output_data = dict((key, []) for key in new_keys)
 
         for i, result in enumerate(result_list):
-            # print(result.keys())
             # print(result)
             # Save best-fit parameters
             ncomps = result["N_components"]
