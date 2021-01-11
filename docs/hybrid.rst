@@ -116,7 +116,9 @@ The fit then proceeds in a similar manner as in the standard AGD fit:
 
     # Set emission parameters
     g.set('alpha_em', 3.75)
-    g.set('wiggle', 10)
+    g.set('max_tb', None)
+    g.set('p_width', 10)
+    g.set('d_mean', 2)
     g.set('min_dv', 10)
     g.set('drop_width', 3)
     g.set('SNR_em', 3)
