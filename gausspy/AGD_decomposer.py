@@ -46,7 +46,7 @@ def paramvec_to_lmfit(paramvec):
     return params
 
 
-def paramvec_p3_to_lmfit(paramvec, wiggle, min_dv):
+def paramvec_p3_to_lmfit(paramvec, max_tb, p_width, d_mean, min_dv):
     """ Transform a Python iterable of parameters into a LMFIT Parameters object"""
     ncomps = len(paramvec) // 5
     params = Parameters()
@@ -62,33 +62,44 @@ def paramvec_p3_to_lmfit(paramvec, wiggle, min_dv):
     for i in range(len(paramvec) - ncomps * 2):
         if i < ncomps:
             if labels[i] == 1:
-                max_tb = (
-                    21.86
-                    * np.float(paramvec[i + ncomps]) ** 2
-                    * (1.0 - np.exp(-1.0 * tau[i]))
-                )
-                min_tb = 20 * (1.0 - np.exp(-1.0 * tau[i]))
-                params.add("p" + str(i + 1), value=paramvec[i], min=0.0)  # min_tb
-                # )  # , max=max_tb)
+                if max_tb is not None:
+                    if max_tb == "max":
+                        max_tb_value = (
+                            21.86
+                            * np.float(paramvec[i + ncomps]) ** 2
+                            * (1.0 - np.exp(-1.0 * tau[i]))
+                        )
+                    else:
+                        max_tb_value = max_tb
+
+                    params.add(
+                        "p" + str(i + 1), value=paramvec[i], min=0.0, max=max_tb_value
+                    )
+                else:
+                    params.add("p" + str(i + 1), value=paramvec[i], min=0.0)
             else:
                 params.add("p" + str(i + 1), value=paramvec[i], min=0.0)
         if i >= ncomps and i < 2 * ncomps:
             if labels[i] == 1:
+                if p_width < 0.001:
+                    p_width = 0.001
                 params.add(
                     "p" + str(i + 1),
                     value=paramvec[i],
-                    min=paramvec[i] - np.abs(wiggle * paramvec[i]),
-                    max=paramvec[i] + np.abs(wiggle * paramvec[i]),
+                    min=paramvec[i] - np.abs(p_width * paramvec[i]),
+                    max=paramvec[i] + np.abs(p_width * paramvec[i]),
                 )
             else:
                 params.add("p" + str(i + 1), value=paramvec[i], min=min_dv)
         if i >= 2 * ncomps:
             if labels[i] == 1:
+                if d_mean < 0.001:
+                    d_mean = 0.001
                 params.add(
                     "p" + str(i + 1),
                     value=paramvec[i],
-                    min=paramvec[i] - np.abs(wiggle * paramvec[i]),
-                    max=paramvec[i] + np.abs(wiggle * paramvec[i]),
+                    min=paramvec[i] - d_mean,
+                    max=paramvec[i] + d_mean,
                 )
             else:
                 params.add("p" + str(i + 1), value=paramvec[i])
@@ -96,11 +107,11 @@ def paramvec_p3_to_lmfit(paramvec, wiggle, min_dv):
 
 
 def create_fitmask(size, offsets_i, di):
-    """ Return valid domain for intermediate fit in d2/dx2 space
+    """Return valid domain for intermediate fit in d2/dx2 space
 
-     fitmask = (0,1)
-     fitmaskw = (True, False)
-     """
+    fitmask = (0,1)
+    fitmaskw = (True, False)
+    """
     fitmask = np.zeros(size)
     for i in range(len(offsets_i)):
         fitmask[int(offsets_i[i] - di[i]) : int(offsets_i[i] + di[i])] = 1.0
@@ -109,21 +120,19 @@ def create_fitmask(size, offsets_i, di):
 
 
 def say(message, verbose=False):
-    """ Diagnostic messages
-    """
+    """Diagnostic messages"""
     if verbose:
         print(message)
 
 
 def gaussian(peak, FWHM, mean):
-    """Return a Gaussian function
-    """
+    """Return a Gaussian function"""
     sigma = FWHM / 2.354820045  # (2 * sqrt( 2 * ln(2)))
     return lambda x: peak * np.exp(-((x - mean) ** 2) / 2.0 / sigma ** 2)
 
 
 def func(x, *args):
-    """ Return multi-component Gaussian model F(x).
+    """Return multi-component Gaussian model F(x).
 
     Parameter vector kargs = [amp1, ..., ampN, width1, ..., widthN, mean1, ..., meanN],
     and therefore has len(args) = 3 x N_components.
@@ -148,7 +157,7 @@ def initialGuess(
     SNR2_thresh=5.0,
     deblend=True,
 ):
-    """  Find initial parameter guesses (AGD algorithm)
+    """Find initial parameter guesses (AGD algorithm)
 
     data,             Input data
     dv,             x-spacing absolute units
@@ -330,8 +339,7 @@ def AGD(
     perform_final_fit=True,
     phase="one",
 ):
-    """ Autonomous Gaussian Decomposition
-    """
+    """Autonomous Gaussian Decomposition"""
 
     if type(SNR2_thresh) != type([]):
         SNR2_thresh = [SNR2_thresh, SNR2_thresh]
@@ -642,7 +650,9 @@ def AGD_double(
     alpha1=None,
     alpha2=None,
     alpha_em=None,
-    wiggle=0.1,
+    max_tb=None,
+    p_width=0.1,
+    d_mean=2,
     drop_width=3,
     min_dv=0,
     mode="python",
@@ -655,18 +665,30 @@ def AGD_double(
     perform_final_fit=True,
     phase="two",
 ):
-    """ Autonomous Gaussian Decomposition "hybrid" Method
+    """Autonomous Gaussian Decomposition "hybrid" Method
     Allows for simultaneous decomposition of 21cm absorption and emission
     New free parameters, in addition to the alpha parameters and
     signal to noise ratios for standard one- or two-phase AGD fit, include:
-        alpha_em:     regularization paramter for the fit to emission (either
+        alpha_em:     regularization parameter for the fit to emission (either
                         the residuals of the absorption ,or the full emission
                         spectrum in the absence of detected absorption components)
                         Default: None
-        wiggle:       factor by which parameters from the absorption fit (i.e.,
-                        the Gaussian parameters of components detected in
-                        absorption) are allowed to vary in the fit to emission.
+        max_tb:       If 'max', the maximum brightness temperature of absorption
+                        components will be fixed to be no larger than Tb computed
+                        from the maximum kinetic temperature. If a value, the maximum Tb will be
+                        set to this value. If None, no limit imposed.
+                        Default: None
+        p_width:      +/- percentage by which the width fitted to absorption fit is
+                        allowed to vary in the fit to emission. i.e., if set to 0.1,
+                        the widths may vary by +/-10%. If set to zero, a
+                        minimum percentage is applied (0.1%).
                         Default: 10%
+        d_mean:       +/- absolute number of channels by which the mean positions of
+                        the absorption fits are allowed to vary in the fit
+                        to emission. i.e., if set to 2, the mean positions
+                        are allowed to vary by +/-2 channels. If set to zero,
+                        a minimum value is applied (0.001).
+                        Default: 2
         drop_width:   if a component is found in the fit to emission and its mean
                         position is within +/- drop_width (defind in channels)
                         from the mean position of any absorption component, the
@@ -678,7 +700,6 @@ def AGD_double(
                         absorption.
                         Default: 0 (i.e., no constraint)
     """
-
     if type(SNR2_thresh) != type([]):
         SNR2_thresh = [SNR2_thresh, SNR2_thresh]
     if type(SNR_thresh) != type([]):
@@ -699,7 +720,7 @@ def AGD_double(
     agd1 = initialGuess(
         vel,
         data,
-        errors=None,
+        errors=errors,
         alpha=alpha1,
         # plot=plot,
         mode=mode,
@@ -790,7 +811,7 @@ def AGD_double(
         agd2 = initialGuess(
             vel,
             residuals,
-            errors=None,
+            errors=errors,
             alpha=alpha2,
             mode=mode,
             verbose=verbose,
@@ -881,6 +902,7 @@ def AGD_double(
             )
             ncomps_fit = len(params_fit) // 3
 
+            # Check if any mean velocities are >/< min and max velocities, if so, drop them.
             amps_fit = np.array(params_fit[0:ncomps_fit], dtype=float)
             fwhms_fit = np.array(params_fit[ncomps_fit : 2 * ncomps_fit], dtype=float)
             offsets_fit = np.array(
@@ -905,6 +927,7 @@ def AGD_double(
             fwhms_fit = np.abs(fwhms_fit[w_keep])
             ncomps_fit = len(params_fit) // 3
 
+            # Check if any widths are less than 3 channels in width, if so, drop them
             amps_fit = np.array(params_fit[0:ncomps_fit], dtype=float)
             fwhms_fit = np.array(params_fit[ncomps_fit : 2 * ncomps_fit], dtype=float)
             offsets_fit = np.array(
@@ -930,6 +953,10 @@ def AGD_double(
         odict["best_fit_parameters"] = params_fit
         odict["best_fit_errors"] = params_errs
         odict["rchi2"] = rchi2
+    else:
+        odict["best_fit_parameters"] = []
+        odict["best_fit_errors"] = []
+        odict["rchi2"] = []
 
     # ------ ADDING SUBSEQUENT FIT FOR EMISSION-ONLY COMPONENTS ---------
     # -- Find initial guesses for fit of absorption components to emission
@@ -957,10 +984,14 @@ def AGD_double(
         params_full = np.concatenate(
             [params_fit, np.ones(ncomps_fit), params_fit[0:ncomps_fit]]
         )
+        print("abs amps going into emission fit", params_fit[0:ncomps_fit])
 
-        # Final fit using constrained parameters
+        # Initial fit using constrained parameters
         t0 = time.time()
-        lmfit_params = paramvec_p3_to_lmfit(params_full, wiggle, min_dv)
+
+        lmfit_params = paramvec_p3_to_lmfit(
+            params_full, max_tb, p_width, d_mean, min_dv
+        )
         result_em = lmfit_minimize(objective_leastsq, lmfit_params, method="leastsq")
         params_em = vals_vec_from_lmfit(result_em.params)
         params_em_errs = errs_vec_from_lmfit(result_em.params)
@@ -991,7 +1022,7 @@ def AGD_double(
     agd3 = initialGuess(
         vel,
         residuals,
-        errors,
+        errors_em,
         alpha=alpha_em,
         mode=mode,
         verbose=verbose,
@@ -1077,7 +1108,9 @@ def AGD_double(
 
         # Final fit using constrained parameters
         t0 = time.time()
-        lmfit_params = paramvec_p3_to_lmfit(params_full, wiggle, min_dv)
+        lmfit_params = paramvec_p3_to_lmfit(
+            params_full, max_tb, p_width, d_mean, min_dv
+        )
         result3 = lmfit_minimize(objective_leastsq, lmfit_params, method="leastsq")
         params_emfit = vals_vec_from_lmfit(result3.params)
         params_emfit_errs = errs_vec_from_lmfit(result3.params)
@@ -1101,10 +1134,15 @@ def AGD_double(
     #     len(params_emfit) // 3,
     #     ncomps_emfit,
     # )
+    # print(params_emfit)
     odict["N_components_em"] = ncomps_emfit
     if ncomps_emfit >= ncomps_fit:
         odict["best_fit_parameters_em"] = params_emfit
         odict["best_fit_errors_em"] = params_emfit_errs
         odict["fit_labels"] = labels_emf
+    else:
+        odict["best_fit_parameters_em"] = []
+        odict["best_fit_errors_em"] = []
+        odict["fit_labels"] = []
 
     return (1, odict)
