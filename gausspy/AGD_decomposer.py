@@ -984,7 +984,6 @@ def AGD_double(
         params_full = np.concatenate(
             [params_fit, np.ones(ncomps_fit), params_fit[0:ncomps_fit]]
         )
-        print("abs amps going into emission fit", params_fit[0:ncomps_fit])
 
         # Initial fit using constrained parameters
         t0 = time.time()
