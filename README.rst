@@ -5,11 +5,11 @@
    :target: https://gausspy.readthedocs.io/en/latest/
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/cmurray-astro/gausspy.svg?branch=master
+.. image:: https://travis-ci.org/gausspy/gausspy.svg?branch=master
     :target: https://travis-ci.org/cmurray-astro/gausspy
     :alt: Build Status
 
-.. image:: https://coveralls.io/repos/github/cmurray-astro/gausspy/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/gausspy/gausspy/badge.svg?branch=master
     :target: https://coveralls.io/github/cmurray-astro/gausspy?branch=master
     :alt: Coverage Status
 
