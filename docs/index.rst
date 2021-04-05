@@ -8,8 +8,6 @@ Welcome to GaussPy's documentation!
 
 
 .. toctree::
-   :hidden
-
    intro
    install
    tutorial
