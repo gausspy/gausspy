@@ -170,7 +170,7 @@ def initialGuess(
     mode = Method for taking derivatives
     """
 
-    errors = None  # Until error
+    # errors = None  # Until error
 
     say("\n\n  --> initialGuess() \n", verbose)
     say("Algorithm parameters: ", verbose)
@@ -232,7 +232,7 @@ def initialGuess(
     )
 
     # Decide on signal threshold
-    if not errors:
+    if errors is None:
         errors = np.std(data[0 : int(BLFrac * data_size)])
 
     thresh = SNR_thresh * errors
@@ -361,7 +361,7 @@ def AGD(
     agd1 = initialGuess(
         vel,
         data,
-        errors=None,
+        errors=errors,
         alpha=alpha1,
         # plot=plot,
         mode=mode,
@@ -452,7 +452,7 @@ def AGD(
         agd2 = initialGuess(
             vel,
             residuals,
-            errors=None,
+            errors=errors,
             alpha=alpha2,
             mode=mode,
             verbose=verbose,
@@ -1054,7 +1054,6 @@ def AGD_double(
                 drop_comp = False
                 for abs_offset in abs_offsets:
                     if np.abs(abs_offset - offset) < drop_width * dv:
-                        # print(abs_offset, offset, 3.0 * dv)
                         drop_comp = True
                 if not drop_comp:
                     indices.append(i)
@@ -1064,7 +1063,6 @@ def AGD_double(
             em_widths = em_widths[indices]
             ncomps_g3 = len(em_amps)
 
-            # print("ncomps_em", ncomps_em)
             amps_emf = np.append(params_em[0:ncomps_em], em_amps)
             widths_emf = np.append(params_em[ncomps_em : 2 * ncomps_em], em_widths)
             offsets_emf = np.append(
@@ -1072,7 +1070,6 @@ def AGD_double(
             )
             tau_emf = np.append(params_fit[0:ncomps_em], np.zeros(ncomps_g3))
             labels_emf = np.append(np.ones(ncomps_em), np.zeros(ncomps_g3))
-            # print("labels", labels_emf)
         else:
             amps_emf = em_amps
             widths_emf = em_widths
