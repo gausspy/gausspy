@@ -46,7 +46,7 @@ Installing GaussPy
 ---------------------
 
 To install GaussPy make sure that all dependences listed above are already installed and properly
-linked to python. 
+linked to Python. 
 
 One way to achieve this goal is by using Conda. First, install either `Miniconda3 <https://docs.conda.io/en/latest/miniconda.html>`_ 
 (includes basic Conda root environment for Python 3.x, *recommended*) 
