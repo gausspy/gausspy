@@ -6,11 +6,11 @@
    :alt: Documentation Status
 
 .. image:: https://travis-ci.org/gausspy/gausspy.svg?branch=master
-    :target: https://travis-ci.org/cmurray-astro/gausspy
+    :target: https://travis-ci.org/gausspy/gausspy
     :alt: Build Status
 
 .. image:: https://coveralls.io/repos/github/gausspy/gausspy/badge.svg?branch=master
-    :target: https://coveralls.io/github/cmurray-astro/gausspy?branch=master
+    :target: https://coveralls.io/github/gausspy/gausspy?branch=master
     :alt: Coverage Status
 
 .. image:: http://img.shields.io/badge/arXiv-1409.2840-skyblue.svg?style=flat
