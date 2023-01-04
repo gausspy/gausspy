@@ -187,12 +187,12 @@ The following is an example python script for plotting the original spectrum and
     FILENAME_DATA = 'simple_gaussian.pickle'
     FILENAME_DATA_DECOMP = 'simple_gaussian_decomposed.pickle'
 
-    data = pickle.load(open(FILENAME_DATA))
+    data = pickle.load(open(FILENAME_DATA, 'rb))
     spectrum = unravel(data['data_list'])
     chan = unravel(data['x_values'])
     errors = unravel(data['errors'])
 
-    data_decomp = pickle.load(open(FILENAME_DATA_DECOMP))
+    data_decomp = pickle.load(open(FILENAME_DATA_DECOMP, 'rb'))
     means_fit = unravel(data_decomp['means_fit'])
     amps_fit = unravel(data_decomp['amplitudes_fit'])
     fwhms_fit = unravel(data_decomp['fwhms_fit'])
