@@ -95,7 +95,7 @@ python pickle file to be read later by GaussPy.
     data['x_values'] = data.get('x_values', []) + [chan]
     data['errors'] = data.get('errors', []) + [errors]
 
-    pickle.dump(data, open(FILENAME, 'w'))
+    pickle.dump(data, open(FILENAME, 'wb'))
 
 
 Running GaussPy
@@ -143,7 +143,7 @@ The following is an example code for running GaussPy. We will use the "one-phase
     data_decomp = g.batch_decomposition(FILENAME_DATA)
 
     # Save decomposition information
-    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'w'))
+    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'wb'))
 
 After AGD determines the Gaussian decomposition, GaussPy then performs a least squares fit of the inital AGD model to the data to produce a final fit solution. The file containing the fit results is a python pickle file. The contents of this file can be viewed by printing the keys within the saved dictionary via,
 
@@ -187,12 +187,12 @@ The following is an example python script for plotting the original spectrum and
     FILENAME_DATA = 'simple_gaussian.pickle'
     FILENAME_DATA_DECOMP = 'simple_gaussian_decomposed.pickle'
 
-    data = pickle.load(open(FILENAME_DATA))
+    data = pickle.load(open(FILENAME_DATA, 'rb))
     spectrum = unravel(data['data_list'])
     chan = unravel(data['x_values'])
     errors = unravel(data['errors'])
 
-    data_decomp = pickle.load(open(FILENAME_DATA_DECOMP))
+    data_decomp = pickle.load(open(FILENAME_DATA_DECOMP, 'rb'))
     means_fit = unravel(data_decomp['means_fit'])
     amps_fit = unravel(data_decomp['amplitudes_fit'])
     fwhms_fit = unravel(data_decomp['fwhms_fit'])
@@ -320,7 +320,7 @@ with the above parameters and store it in GaussPy-friendly format.
     data['x_values'] = data.get('x_values', []) + [chan]
     data['errors'] = data.get('errors', []) + [errors]
 
-    pickle.dump(data, open(FILENAME, 'w'))
+    pickle.dump(data, open(FILENAME, 'wb'))
 
 A plot of the spectrum constructed above is included below:
 
@@ -377,7 +377,7 @@ begin with. As before, the important parameters to specify are:
     data_decomp = g.batch_decomposition(FILENAME_DATA)
 
     # Save decomposition information
-    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'w'))
+    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'wb'))
 
 Plot Decomposition Results
 ----------------------------
@@ -529,7 +529,7 @@ With the above parameters specified, we can proceed with constructing a set of s
             data['means'] = data.get('means', []) + [means]
 
     # Dump synthetic data into specified filename
-    pickle.dump(data, open(FILENAME, 'w'))
+    pickle.dump(data, open(FILENAME, 'wb'))
 
 
 Training the Algorithm
@@ -619,7 +619,7 @@ accuracy of 68.4%. As in the :ref:`simple-example-tutorial` and
     data_decomp = g.batch_decomposition(FILENAME_DATA)
 
     # Save decomposition information
-    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'w'))
+    pickle.dump(data_decomp, open(FILENAME_DATA_DECOMP, 'wb'))
 
 The following figure displays the result of
 fitting the "Multiple Gaussians" spectrum with a trained value of
