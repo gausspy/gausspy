@@ -36,9 +36,9 @@ by keys with _em extensions) in the same dictionary and write it to disk:
     import pickle
 
     # Enter emission data into AGD dataset
-    data['data_list'] = data.get('data_list_em', []) + [absorption_spectrum]
-    data['x_values'] = data.get('x_values_em', []) + [absorption_channels]
-    data['errors'] = data.get('errors_em', []) + [absorption_errors]
+    data['data_list_em'] = data.get('data_list_em', []) + [absorption_spectrum]
+    data['x_values_em'] = data.get('x_values_em', []) + [absorption_channels]
+    data['errors_em'] = data.get('errors_em', []) + [absorption_errors]
 
     # Write input data to file
     data_filename = 'emission_absorption_data.pickle'
