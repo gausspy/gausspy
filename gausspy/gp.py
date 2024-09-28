@@ -261,7 +261,9 @@ class GaussianDecomposer(object):
         output_data = dict((key, []) for key in new_keys)
 
         for i, result in enumerate(result_list):
-            # print(result)
+            if not isinstance(result, dict):
+                print(result)
+                continue
             # Save best-fit parameters
             ncomps = result["N_components"]
             amps = result["best_fit_parameters"][0:ncomps] if ncomps > 0 else []

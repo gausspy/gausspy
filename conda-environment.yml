@@ -1,8 +1,10 @@
 channels:
   - defaults
 dependencies:
+  - python==3.9.19
   - pip
-  - numpy
+  - astropy<6.0.0
+  - numpy==1.26.4
   - scipy
   - h5py
   - matplotlib

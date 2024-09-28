@@ -66,7 +66,7 @@ def paramvec_p3_to_lmfit(paramvec, max_tb, p_width, d_mean, min_dv):
                     if max_tb == "max":
                         max_tb_value = (
                             21.86
-                            * np.float(paramvec[i + ncomps]) ** 2
+                            * float(paramvec[i + ncomps]) ** 2
                             * (1.0 - np.exp(-1.0 * tau[i]))
                         )
                     else:
@@ -442,7 +442,7 @@ def AGD(
                 ).ravel()  # Explicit final (narrow) model
                 median_window = 2.0 * 10 ** ((np.log10(alpha1) + 2.187) / 3.859)
                 residuals = median_filter(
-                    data - intermediate_model, np.int(median_window)
+                    data - intermediate_model, int(median_window)
                 )
             else:
                 residuals = data
@@ -801,7 +801,7 @@ def AGD_double(
                 ).ravel()  # Explicit final (narrow) model
                 median_window = 2.0 * 10 ** ((np.log10(alpha1) + 2.187) / 3.859)
                 residuals = median_filter(
-                    data - intermediate_model, np.int(median_window)
+                    data - intermediate_model, int(median_window)
                 )
             else:
                 residuals = data
@@ -1011,7 +1011,7 @@ def AGD_double(
             vel, *params_em
         ).ravel()  # Explicit final (narrow) model
         median_window = 2.0 * 10 ** ((np.log10(alpha_em) + 2.187) / 3.859)
-        residuals = median_filter(data - intermediate_model, np.int(median_window))
+        residuals = median_filter(data - intermediate_model, int(median_window))
 
     else:
         residuals = data
